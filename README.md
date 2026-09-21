@@ -309,10 +309,17 @@ Create `.env` files based on `.env.example`:
 | `SECRET_KEY` | JWT secret key for token signing | `your-super-secret-key-change-this-in-production-min-32-chars` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Token expiration time in minutes | `10080` (7 days) |
 | `UPLOAD_DIR` | Directory where uploaded files are stored | `./backend/uploads` |
+| `CORS_ORIGINS` | JSON array of allowed frontend origins | Local Vite URLs |
 | `GROQ_API_KEY` | Groq Cloud API key | *(configured)* |
 | `GROQ_MODEL` | Groq model identifier | `openai/gpt-oss-120b` |
 | `GEMINI_API_KEY` | Optional Google Gemini API key | *(empty - uses Groq or local offline RAG)* |
 | `OPENAI_API_KEY` | Optional OpenAI API key | *(empty - uses Groq or local offline RAG)* |
+
+For a separate frontend deployment, set `VITE_API_URL` in the frontend build
+environment to the public backend URL, for example `https://api.example.com/api`.
+Set `CORS_ORIGINS` on the backend to a JSON array containing the frontend URL,
+for example `["https://app.example.com"]`. Also set a strong `SECRET_KEY` in
+the deployed backend environment.
 
 ---
 

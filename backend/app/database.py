@@ -7,9 +7,16 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Normalize DATABASE_URL for asyncpg if standard postgresql:// is provided
-db_url = settings.DATABASE_URL
-if db_url.startswith("postgresql://"):
+# Normalize and sanitize DATABASE_URL for asyncpg
+db_url = (settings.DATABASE_URL or "").strip().strip("'\"")
+if db_url.startswith("${{"):
+    raise ValueError(
+        f"DATABASE_URL is set to an unresolved Railway template: '{db_url}'. "
+        "Please check your PostgreSQL service name in Railway or copy the actual connection string."
+    )
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+asyncpg://"):
     db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 # Handle engine args (e.g. check_same_thread for sqlite)
