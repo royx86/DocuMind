@@ -297,9 +297,52 @@ Rebuild after making backend changes:
 docker compose up --build -d
 ```
 
+## 9. Railway Deployment
+
+Deploy the application as three services in one Railway project:
+
+1. Create a Railway project and add the PostgreSQL service.
+2. Add a backend service from this repository. Set its root directory to
+  `/backend`; Railway will use `backend/Dockerfile`.
+3. Add a frontend service from the same repository. Set its root directory to
+  `/frontend`; Railway will use `frontend/Dockerfile`.
+4. Generate a public domain for both the backend and frontend services.
+
+Configure the backend service variables:
+
+```env
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+SECRET_KEY=<long-random-production-secret>
+UPLOAD_DIR=/app/uploads
+CORS_ORIGINS=["https://<frontend-domain>"]
+```
+
+Add optional `GROQ_API_KEY`, `GROQ_MODEL`, `GEMINI_API_KEY`, or
+`OPENAI_API_KEY` variables as needed. Railway automatically provides `PORT`,
+which the backend Docker image uses.
+
+Configure the frontend service variable before its build:
+
+```env
+VITE_API_URL=https://<backend-domain>/api
+```
+
+The frontend image serves the Vite build on port `8080` and includes SPA
+routing fallback. Railway should detect this exposed port automatically. Add a
+Railway volume mounted at `/app/uploads` on the
+backend service; without it, uploaded source files are lost whenever the
+service is redeployed or restarted.
+
+After deployment, verify:
+
+- `https://<backend-domain>/api/health` returns `{"status":"healthy",...}`.
+- `https://<frontend-domain>/health` returns `{"status":"healthy"}`.
+- Registration, document upload, chat, and quiz generation work from the
+  frontend domain.
+
 ---
 
-## 9. Environment Variables
+## 10. Environment Variables
 
 Create `.env` files based on `.env.example`:
 
@@ -323,7 +366,7 @@ the deployed backend environment.
 
 ---
 
-## 10. Database Migrations
+## 11. Database Migrations
 
 The application uses SQLAlchemy declarative models. On startup, `init_db()` automatically executes `Base.metadata.create_all` with exponential backoff retries.
 
@@ -343,7 +386,7 @@ If you wish to use Alembic for versioned schema migrations:
 
 ---
 
-## 11. API Documentation
+## 12. API Documentation
 
 FastAPI provides interactive, self-documenting API specifications out of the box:
 - **Swagger UI**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
@@ -370,7 +413,7 @@ Key endpoints:
 
 ---
 
-## 12. Troubleshooting
+## 13. Troubleshooting
 
 ### 1. PostgreSQL Connection Failed
 - **Symptoms**: `ConnectionRefusedError` or `Is the server running on host localhost?`
@@ -398,7 +441,7 @@ Key endpoints:
 
 ---
 
-## 13. Development Workflow
+## 14. Development Workflow
 
 For day-to-day development, we recommend running the frontend and backend in separate terminals:
 1. **Backend**:
