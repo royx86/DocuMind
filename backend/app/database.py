@@ -2,22 +2,44 @@ import asyncio
 import logging
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import declarative_base
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Normalize and sanitize DATABASE_URL for asyncpg
-db_url = (settings.DATABASE_URL or "").strip().strip("'\"")
-if db_url.startswith("${{"):
-    raise ValueError(
-        f"DATABASE_URL is set to an unresolved Railway template: '{db_url}'. "
-        "Please check your PostgreSQL service name in Railway or copy the actual connection string."
-    )
-if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
-elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+asyncpg://"):
-    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+def normalize_database_url(value: str | None) -> str:
+    """Normalize supported Postgres URLs and reject invalid deployment values."""
+    db_url = (value or "").strip().strip("'\"")
+    if not db_url or "${{" in db_url or db_url.startswith("${"):
+        raise ValueError(
+            "DATABASE_URL is missing or still contains a Railway variable "
+            "reference. Set it to Railway's resolved PostgreSQL DATABASE_URL."
+        )
+
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+    try:
+        parsed_url = make_url(db_url)
+    except Exception as exc:
+        raise ValueError(
+            "DATABASE_URL is not a valid PostgreSQL connection URL. "
+            "Use a value beginning with postgresql:// or postgresql+asyncpg://."
+        ) from exc
+
+    if parsed_url.drivername == "postgresql":
+        parsed_url = parsed_url.set(drivername="postgresql+asyncpg")
+    elif parsed_url.drivername != "postgresql+asyncpg":
+        raise ValueError(
+            "DATABASE_URL must use postgresql://, postgres://, or "
+            "postgresql+asyncpg://."
+        )
+
+    return str(parsed_url)
+
+
+db_url = normalize_database_url(settings.DATABASE_URL)
 
 # Handle engine args (e.g. check_same_thread for sqlite)
 engine_args = {"echo": False, "future": True}
