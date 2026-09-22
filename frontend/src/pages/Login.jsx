@@ -20,8 +20,8 @@ export const Login = () => {
   const { login } = useAuth();
   const { error, success } = useToast();
 
-  const [email, setEmail] = useState("saswata@example.com");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 

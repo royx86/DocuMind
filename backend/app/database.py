@@ -36,7 +36,7 @@ def normalize_database_url(value: str | None) -> str:
             "postgresql+asyncpg://."
         )
 
-    return str(parsed_url)
+    return parsed_url.render_as_string(hide_password=False)
 
 
 db_url = normalize_database_url(settings.DATABASE_URL)

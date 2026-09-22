@@ -11,16 +11,10 @@ class Settings(BaseSettings):
 
     # Database
     # Default to PostgreSQL, with asyncpg driver
-    DATABASE_URL: str = Field(
-        default="postgresql+asyncpg://postgres:postgres@localhost:5432/qna_db",
-        env="DATABASE_URL",
-    )
+    DATABASE_URL: str = Field(default="", env="DATABASE_URL")
 
     # JWT Authentication
-    SECRET_KEY: str = Field(
-        default="documind-super-secret-production-key-2026-secure",
-        env="SECRET_KEY",
-    )
+    SECRET_KEY: str = Field(default="", env="SECRET_KEY")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
@@ -36,12 +30,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = Field(default="", env="OPENAI_API_KEY")
 
     # CORS
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-    ]
+    CORS_ORIGINS: List[str] = Field(default_factory=list, env="CORS_ORIGINS")
 
     class Config:
         env_file = ".env"

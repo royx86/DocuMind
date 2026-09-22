@@ -204,7 +204,7 @@ cp .env.example .env
 
 Run the FastAPI development server:
 ```bash
-uvicorn app.main:app --reload --port 8000
+./.venv/bin/uvicorn app.main:app --reload --port 8000
 ```
 The backend API is now running at `http://127.0.0.1:8000`.
 
@@ -238,13 +238,13 @@ If you prefer running PostgreSQL natively on your machine rather than through Do
    - Windows: Start the PostgreSQL service via `services.msc`.
 3. **Create the Database and User**:
    ```sql
-   CREATE USER postgres WITH PASSWORD 'postgrespassword';
+  CREATE USER postgres WITH PASSWORD '<choose-a-strong-password>';
    CREATE DATABASE qna_db OWNER postgres;
    GRANT ALL PRIVILEGES ON DATABASE qna_db TO postgres;
    ```
 4. **Update `backend/.env`**:
    ```env
-   DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@localhost:5432/qna_db
+  DATABASE_URL=postgresql+asyncpg://postgres:<your-password>@localhost:5432/qna_db
    ```
 5. When the backend boots, `init_db()` automatically connects and initializes all required tables (`users`, `documents`, `conversations`, `messages`, `quizzes`, `quiz_questions`).
 
@@ -263,7 +263,7 @@ This command:
 - Builds the `backend` Docker container using `backend/Dockerfile`.
 - Waits until PostgreSQL is healthy before launching the FastAPI application.
 - Mounts the `documind_postgres_data` named volume so database records persist across restarts.
-- Exposes port `8000` for FastAPI and port `5432` for PostgreSQL.
+- Exposes port `8000` for FastAPI, port `8080` for the frontend, and port `5432` for PostgreSQL.
 
 ### 2. Inspect Running Containers & Logs
 Check container status:
@@ -348,8 +348,8 @@ Create `.env` files based on `.env.example`:
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql+asyncpg://postgres:postgrespassword@localhost:5432/qna_db` |
-| `SECRET_KEY` | JWT secret key for token signing | `your-super-secret-key-change-this-in-production-min-32-chars` |
+| `DATABASE_URL` | PostgreSQL connection string | Required; set in `.env` |
+| `SECRET_KEY` | JWT secret key for token signing | Required; set in `.env` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Token expiration time in minutes | `10080` (7 days) |
 | `UPLOAD_DIR` | Directory where uploaded files are stored | `./backend/uploads` |
 | `CORS_ORIGINS` | JSON array of allowed frontend origins | Local Vite URLs |
