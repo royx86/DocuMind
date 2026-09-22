@@ -6,7 +6,7 @@ export const ChatInput = ({
   onSendMessage,
   onUploadDocument,
   disabled = false,
-  placeholder = "Ask anything about your document...",
+  placeholder = "Ask anything...",
   mode = "moderate",
   onModeChange,
 }) => {
@@ -125,12 +125,8 @@ export const ChatInput = ({
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled || uploading}
-            placeholder={
-              mode === "strict"
-                ? `Ask a question (answers strictly from ${placeholder.replace("Ask anything about ", "")})...`
-                : placeholder
-            }
-            className="resize-none bg-transparent text-sm md:text-base outline-none w-full min-h-[38px] max-h-32 py-1.5 px-1 text-foreground placeholder:text-muted-foreground/80 leading-relaxed"
+            placeholder="Ask anything..."
+            className="resize-none bg-transparent text-sm md:text-base outline-none w-full h-[38px] min-h-[38px] max-h-[38px] overflow-hidden py-1.5 px-1 text-foreground placeholder:text-muted-foreground/80 leading-relaxed whitespace-nowrap"
           />
 
           {/* Right: Send Button */}

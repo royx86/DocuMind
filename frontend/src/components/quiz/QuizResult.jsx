@@ -11,6 +11,11 @@ export const QuizResult = ({
   onNewQuiz,
   onBackToDoc,
 }) => {
+  const skippedCount = result.questions.filter((question) => !question.user_answer).length;
+  const incorrectCount = result.questions.filter(
+    (question) => question.user_answer && !question.is_correct
+  ).length;
+
   const getScoreColor = (pct) => {
     if (pct >= 80) return "text-emerald-600";
     if (pct >= 50) return "text-amber-600";
@@ -44,15 +49,20 @@ export const QuizResult = ({
         </div>
 
         {/* Stats breakdown */}
-        <div className="flex items-center gap-8 border-y border-border py-4 px-8 w-full max-w-sm justify-center">
+        <div className="flex items-center gap-6 border-y border-border py-4 px-6 w-full max-w-md justify-center">
           <div className="flex flex-col items-center">
             <span className="text-emerald-600 font-bold text-xl">{result.correct_count}</span>
             <span className="text-muted-foreground text-xs font-medium">Correct</span>
           </div>
           <div className="h-8 w-px bg-border" />
           <div className="flex flex-col items-center">
-            <span className="text-red-600 font-bold text-xl">{result.incorrect_count}</span>
+            <span className="text-red-600 font-bold text-xl">{incorrectCount}</span>
             <span className="text-muted-foreground text-xs font-medium">Incorrect</span>
+          </div>
+          <div className="h-8 w-px bg-border" />
+          <div className="flex flex-col items-center">
+            <span className="text-muted-foreground font-bold text-xl">{skippedCount}</span>
+            <span className="text-muted-foreground text-xs font-medium">Skipped</span>
           </div>
         </div>
 
@@ -90,6 +100,10 @@ export const QuizResult = ({
                   <CheckCircle2 className="size-3.5" />
                   <span>Correct</span>
                 </Badge>
+              ) : !q.user_answer ? (
+                <Badge variant="outline" className="gap-1 text-muted-foreground">
+                  <span>Skipped</span>
+                </Badge>
               ) : (
                 <Badge variant="error" className="gap-1">
                   <XCircle className="size-3.5" />
@@ -105,13 +119,13 @@ export const QuizResult = ({
             <div className="flex flex-col gap-1.5 text-sm bg-muted/40 p-3.5 rounded-xl border border-border/60">
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground text-xs w-28">Your Answer:</span>
-                <span className={`font-semibold ${q.is_correct ? "text-emerald-700" : "text-red-700"}`}>
-                  Option {q.user_answer || "None"}
+                <span className={`font-semibold ${q.is_correct ? "text-emerald-700 dark:text-emerald-300" : q.user_answer ? "text-red-700 dark:text-red-300" : "text-muted-foreground"}`}>
+                  {q.user_answer ? `Option ${q.user_answer}` : "Skipped"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground text-xs w-28">Correct Answer:</span>
-                <span className="font-semibold text-emerald-700">Option {q.correct_answer}</span>
+                <span className="font-semibold text-emerald-700 dark:text-emerald-300">Option {q.correct_answer}</span>
               </div>
             </div>
 

@@ -92,14 +92,33 @@ export const Quiz = () => {
     return res;
   };
 
+  const handleAnswerChange = (questionId, userAnswer) => {
+    setSavedAnswers((prev) => ({
+      ...prev,
+      [questionId]: { userAnswer, result: prev[questionId]?.result || null },
+    }));
+  };
+
+  const handleSkip = (questionId) => {
+    setSavedAnswers((prev) => ({
+      ...prev,
+      [questionId]: { userAnswer: "", result: null },
+    }));
+    setCurrentQuestionIndex((prev) =>
+      Math.min(prev + 1, activeQuiz.questions.length - 1)
+    );
+  };
+
   const handleFinishQuiz = async () => {
     if (!activeQuiz) return;
     setLoading(true);
 
-    const answersList = Object.entries(savedAnswers).map(([qid, val]) => ({
+    const answersList = Object.entries(savedAnswers)
+      .filter(([, val]) => val.userAnswer)
+      .map(([qid, val]) => ({
       question_id: qid,
       user_answer: val.userAnswer,
-    }));
+      }));
 
     try {
       const result = await api.submitQuiz(activeQuiz.quiz_id, answersList);
@@ -176,6 +195,8 @@ export const Quiz = () => {
           totalQuestions={activeQuiz.questions.length}
           documentName={activeQuiz.document_name}
           onAnswerSubmit={handleAnswerSubmit}
+          onAnswerChange={handleAnswerChange}
+          onSkip={() => handleSkip(currentQ.id)}
           onNext={() =>
             setCurrentQuestionIndex((prev) =>
               Math.min(prev + 1, activeQuiz.questions.length - 1)

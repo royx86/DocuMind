@@ -15,6 +15,8 @@ export const QuizCard = ({
   isLast,
   onFinish,
   savedAnswer,
+  onAnswerChange,
+  onSkip,
 }) => {
   const [selectedOption, setSelectedOption] = useState(savedAnswer?.userAnswer || "");
   const [submittedResult, setSubmittedResult] = useState(savedAnswer?.result || null);
@@ -26,6 +28,12 @@ export const QuizCard = ({
   }, [question.id, savedAnswer]);
 
   const optionLetters = ["A", "B", "C", "D"];
+
+  const handleOptionSelect = (letter) => {
+    if (isAnswered) return;
+    setSelectedOption(letter);
+    onAnswerChange?.(question.id, letter);
+  };
 
   const handleSubmit = async () => {
     if (!selectedOption || submittedResult || submitting) return;
@@ -75,10 +83,10 @@ export const QuizCard = ({
               const isUserChoice = letter === submittedResult.user_answer;
 
               if (isCorrectOption) {
-                optionStyle = "border-emerald-500 bg-emerald-50 text-emerald-950 font-medium ring-1 ring-emerald-400";
+                optionStyle = "border-emerald-500 bg-emerald-50 text-emerald-950 dark:bg-emerald-950/50 dark:text-emerald-100 font-medium ring-1 ring-emerald-400";
                 letterStyle = "bg-emerald-600 text-white";
               } else if (isUserChoice && !submittedResult.is_correct) {
-                optionStyle = "border-red-400 bg-red-50 text-red-950 line-through opacity-85";
+                optionStyle = "border-red-400 bg-red-50 text-red-950 dark:bg-red-950/50 dark:text-red-100 line-through opacity-85";
                 letterStyle = "bg-red-600 text-white";
               } else {
                 optionStyle = "border-border bg-muted/20 opacity-50";
@@ -92,7 +100,7 @@ export const QuizCard = ({
               <button
                 key={letter}
                 type="button"
-                onClick={() => !isAnswered && setSelectedOption(letter)}
+                onClick={() => handleOptionSelect(letter)}
                 disabled={isAnswered}
                 className={`flex items-start gap-4 p-4 rounded-xl border text-left text-sm transition-all duration-180 cursor-pointer disabled:cursor-default ${optionStyle}`}
               >
@@ -127,8 +135,8 @@ export const QuizCard = ({
           <div
             className={`p-4 rounded-xl border text-sm leading-relaxed animate-in fade-in duration-200 ${
               submittedResult.is_correct
-                ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-                : "bg-amber-50 border-amber-200 text-amber-900"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-900 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-100"
+                : "bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-950/50 dark:border-amber-800 dark:text-amber-100"
             }`}
           >
             <div className="flex items-center gap-2 font-semibold mb-2">
@@ -166,7 +174,7 @@ export const QuizCard = ({
         {isLast ? (
           <Button
             onClick={onFinish}
-            disabled={!isAnswered}
+            disabled={submitting}
             className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             <span>Finish Quiz</span>
@@ -175,14 +183,23 @@ export const QuizCard = ({
         ) : (
           <Button
             onClick={onNext}
-            disabled={!isAnswered}
             className="gap-2"
           >
-            <span>Next Question</span>
+            <span>{isAnswered || selectedOption ? "Next Question" : "Skip Question"}</span>
             <ArrowRight className="size-4" />
           </Button>
         )}
       </div>
+
+      {!isAnswered && !selectedOption && (
+        <Button
+          variant="ghost"
+          onClick={onSkip}
+          className="mx-auto -mt-3 text-muted-foreground hover:text-foreground"
+        >
+          Skip this question
+        </Button>
+      )}
     </div>
   );
 };

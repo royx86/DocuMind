@@ -30,13 +30,13 @@ export const MessageItem = ({
   }
 
   return (
-    <div className="flex gap-3.5">
+    <div className="flow-root">
       {/* Bot Avatar */}
-      <div className="rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex justify-center items-center shrink-0 size-8.5 mt-1 shadow-2xs">
-        <Bot className="size-4.5" />
+      <div className="float-left mr-2 sm:mr-3 rounded-lg sm:rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex justify-center items-center size-7 sm:size-8.5 mt-0.5 sm:mt-1 shadow-2xs">
+        <Bot className="size-4 sm:size-4.5" />
       </div>
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0">
         {/* Header / Mode badge */}
         {message.mode && (
           <div className="flex items-center gap-1.5 mb-2">
@@ -80,7 +80,7 @@ export const MessageItem = ({
         )}
 
         {/* Action buttons: Copy, Thumbs Up, Thumbs Down */}
-        <div className="text-muted-foreground text-xs flex items-center gap-3">
+        <div className="text-muted-foreground text-xs flex flex-wrap items-center gap-2 sm:gap-3">
           <Button
             variant="ghost"
             size="sm"
