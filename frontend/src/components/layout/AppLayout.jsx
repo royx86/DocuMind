@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { MobileNav } from "./MobileNav";
@@ -7,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export const AppLayout = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (loading) {
@@ -30,7 +32,7 @@ export const AppLayout = () => {
       <MobileNav open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
       <div className="flex flex-col flex-1 min-w-0 min-h-screen overflow-x-hidden">
         <Header onOpenMobileMenu={() => setMobileMenuOpen(true)} />
-        <main className="flex-1 overflow-y-auto">
+        <main className={`flex-1 min-h-0 ${location.pathname.startsWith("/chat") ? "overflow-hidden" : "overflow-y-auto"}`}>
           <Outlet />
         </main>
       </div>

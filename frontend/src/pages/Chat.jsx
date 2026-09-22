@@ -410,7 +410,7 @@ export const Chat = () => {
   );
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)] overflow-hidden bg-background relative">
+    <div className="flex h-[calc(100dvh-4rem)] md:h-[calc(100dvh-5rem)] overflow-hidden bg-background relative">
       {/* Mobile Slide-Over Drawer */}
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">

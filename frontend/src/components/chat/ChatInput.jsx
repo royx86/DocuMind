@@ -50,7 +50,7 @@ export const ChatInput = ({
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-none z-20">
+    <div className="absolute bottom-0 left-0 right-0 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:p-4 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-none z-20">
       <div className="pointer-events-auto mx-auto max-w-3xl">
         {/* Compact Mode Selector */}
         <div className="flex items-center justify-between mb-1.5 px-2">
