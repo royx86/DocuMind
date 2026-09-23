@@ -219,11 +219,11 @@ export const Quiz = () => {
         {/* Header Section */}
         <header className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
-            <div className="size-11 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shadow-xs">
+            <div className="size-11 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shadow-xs p-2">
               <GraduationCap className="size-6" />
             </div>
             <div>
-              <h1 className="font-bold text-foreground text-3xl tracking-tight">
+              <h1 className="font-bold text-foreground text-xl lg:text-3xl tracking-tight">
                 Practice for Exams
               </h1>
               <p className="text-muted-foreground text-sm mt-0.5">

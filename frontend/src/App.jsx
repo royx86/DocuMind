@@ -14,6 +14,7 @@ import { History } from "@/pages/History";
 import { Settings } from "@/pages/Settings";
 import { Login } from "@/pages/Login";
 import { Register } from "@/pages/Register";
+import { Landing } from "@/pages/Landing";
 
 export function App() {
   return (
@@ -32,10 +33,11 @@ export function App() {
               {/* Public Auth Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/" element={<Landing />} />
 
               {/* Protected Workspace Routes */}
               <Route element={<AppLayout />}>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/documents" element={<Documents />} />
                 <Route path="/workspace/:id" element={<DocumentWorkspace />} />
                 <Route path="/chat" element={<Chat />} />

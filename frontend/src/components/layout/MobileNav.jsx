@@ -22,7 +22,7 @@ export const MobileNav = ({ open, onClose }) => {
   if (!open) return null;
 
   const navItems = [
-    { label: "Overview", path: "/", icon: LayoutDashboard },
+    { label: "Overview", path: "/dashboard", icon: LayoutDashboard },
     { label: "New Chat", path: "/chat", icon: MessageSquarePlus },
     { label: "Documents", path: "/documents", icon: FileText },
     { label: "Practice Quiz", path: "/quiz", icon: GraduationCap },
@@ -60,8 +60,8 @@ export const MobileNav = ({ open, onClose }) => {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive =
-              item.path === "/"
-                ? location.pathname === "/"
+              item.path === "/dashboard"
+                ? location.pathname === "/dashboard"
                 : location.pathname.startsWith(item.path);
 
             return (
@@ -90,9 +90,9 @@ export const MobileNav = ({ open, onClose }) => {
           <button
             type="button"
             onClick={() => {
-              logout();
               onClose();
-              navigate("/login");
+              navigate("/");
+              logout();
             }}
             className="w-full flex items-center gap-3 px-3.5 h-11 rounded-xl text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
           >

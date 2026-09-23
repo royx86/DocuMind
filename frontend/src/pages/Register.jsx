@@ -24,6 +24,7 @@ export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -41,11 +42,16 @@ export const Register = () => {
       return;
     }
 
+    if (!acceptedTerms) {
+      setErrorMessage("Please accept the Terms of Service and Privacy Policy");
+      return;
+    }
+
     setLoading(true);
     try {
       await register(name, email, password, confirmPassword);
       success("Account created successfully! Welcome to DocuMind.");
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setErrorMessage(err.message || "Failed to create account");
       error(err.message || "Registration failed");
@@ -55,10 +61,10 @@ export const Register = () => {
   };
 
   return (
-    <div className="bg-background text-foreground min-h-screen w-screen overflow-x-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-[46%_54%] min-h-screen">
+    <div className="min-h-dvh w-full overflow-x-hidden bg-[#080512] text-white">
+      <div className="grid min-h-dvh grid-cols-1">
         {/* Left Hero section matching Screen-1 */}
-        <section className="bg-[#1e1b4b] text-white flex relative p-8 lg:p-12 flex-col justify-between min-h-[420px] lg:min-h-screen overflow-hidden">
+        <section className="hidden">
           <div className="relative z-10">
             <div className="font-bold text-xl tracking-tight flex items-center gap-2.5">
               <div className="size-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center shadow-xs">
@@ -98,18 +104,24 @@ export const Register = () => {
         </section>
 
         {/* Right Form section */}
-        <section className="bg-muted/30 flex relative p-6 sm:p-12 justify-center items-center min-h-screen">
-          <Card className="shadow-sm rounded-2xl bg-background border-border p-6 sm:p-8 w-full max-w-[440px]">
-            <CardHeader className="p-0 gap-2 mb-6">
-              <div className="font-bold text-primary text-xs tracking-widest uppercase">
-                GET STARTED
+        <section className="flex min-h-dvh items-start justify-center overflow-y-auto bg-[#080512] p-4 sm:p-8 lg:items-center">
+          <div className="flex w-full max-w-[440px] flex-col items-center py-6 sm:py-10">
+            <div className="mb-9 flex items-center gap-2.5 text-lg font-semibold tracking-tight text-white">
+              <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 text-white shadow-xs">
+                <Sparkles className="size-4" />
               </div>
-              <CardTitle className="font-bold text-2xl sm:text-3xl tracking-tight text-foreground">
-                Create your workspace
-              </CardTitle>
-              <CardDescription className="text-muted-foreground text-sm">
-                Start learning faster with DocuMind.
-              </CardDescription>
+              <span>DocuMind</span>
+            </div>
+
+          <div className="mb-7 text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Create your account</h1>
+            <p className="mt-2 text-sm text-slate-400">Start turning documents into clear answers.</p>
+          </div>
+
+          <Card className="w-full rounded-2xl border border-white/10 bg-white/[0.06] p-5 shadow-2xl shadow-black/20 sm:p-7">
+            <CardHeader className="p-0 gap-2 mb-6">
+              <CardTitle className="text-lg font-semibold tracking-tight text-white">Your details</CardTitle>
+              <CardDescription className="text-sm text-slate-400">Set up your DocuMind workspace.</CardDescription>
             </CardHeader>
 
             {errorMessage && (
@@ -122,7 +134,7 @@ export const Register = () => {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <CardContent className="p-0 flex flex-col gap-3.5">
                 <div className="grid gap-1.5">
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label className="text-slate-200" htmlFor="name">Name</Label>
                   <div className="relative">
                     <User className="-translate-y-1/2 text-muted-foreground absolute top-1/2 left-3.5 size-4" />
                     <Input
@@ -130,7 +142,7 @@ export const Register = () => {
                       type="text"
                       required
                       placeholder="Saswata Roy"
-                      className="pl-10.5 h-11 rounded-xl"
+                      className="h-11 rounded-lg border-white/10 bg-black/20 pl-10.5 text-white placeholder:text-slate-500"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                     />
@@ -138,7 +150,7 @@ export const Register = () => {
                 </div>
 
                 <div className="grid gap-1.5">
-                  <Label htmlFor="email">Email</Label>
+                  <Label className="text-slate-200" htmlFor="email">Email</Label>
                   <div className="relative">
                     <Mail className="-translate-y-1/2 text-muted-foreground absolute top-1/2 left-3.5 size-4" />
                     <Input
@@ -146,7 +158,7 @@ export const Register = () => {
                       type="email"
                       required
                       placeholder="you@example.com"
-                      className="pl-10.5 h-11 rounded-xl"
+                      className="h-11 rounded-lg border-white/10 bg-black/20 pl-10.5 text-white placeholder:text-slate-500"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
@@ -154,7 +166,7 @@ export const Register = () => {
                 </div>
 
                 <div className="grid gap-1.5">
-                  <Label htmlFor="password">Password</Label>
+                  <Label className="text-slate-200" htmlFor="password">Password</Label>
                   <div className="relative">
                     <LockKeyhole className="-translate-y-1/2 text-muted-foreground absolute top-1/2 left-3.5 size-4" />
                     <Input
@@ -162,7 +174,7 @@ export const Register = () => {
                       type="password"
                       required
                       placeholder="At least 6 characters"
-                      className="pl-10.5 h-11 rounded-xl"
+                      className="h-11 rounded-lg border-white/10 bg-black/20 pl-10.5 text-white placeholder:text-slate-500"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
@@ -170,7 +182,7 @@ export const Register = () => {
                 </div>
 
                 <div className="grid gap-1.5">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Label className="text-slate-200" htmlFor="confirm-password">Repeat password</Label>
                   <div className="relative">
                     <LockKeyhole className="-translate-y-1/2 text-muted-foreground absolute top-1/2 left-3.5 size-4" />
                     <Input
@@ -178,7 +190,7 @@ export const Register = () => {
                       type="password"
                       required
                       placeholder="Repeat password"
-                      className="pl-10.5 h-11 rounded-xl"
+                      className="h-11 rounded-lg border-white/10 bg-black/20 pl-10.5 text-white placeholder:text-slate-500"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                     />
@@ -186,11 +198,21 @@ export const Register = () => {
                 </div>
               </CardContent>
 
+              <label className="flex cursor-pointer items-start gap-2 text-xs text-slate-400">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 size-3.5 shrink-0 accent-violet-500"
+                />
+                <span>I agree to the Terms of Service and Privacy Policy</span>
+              </label>
+
               <CardFooter className="p-0 flex flex-col gap-4 mt-2">
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-primary text-primary-foreground w-full h-11 text-sm font-semibold shadow-xs hover:shadow-md hover:-translate-y-0.5"
+                  className="h-11 w-full rounded-lg bg-violet-600 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 hover:bg-violet-500"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
@@ -202,15 +224,16 @@ export const Register = () => {
                   )}
                 </Button>
 
-                <p className="text-center text-xs text-muted-foreground">
+                <p className="text-center text-xs text-slate-400">
                   Already have an account?{" "}
-                  <Link to="/login" className="font-semibold text-primary hover:underline">
-                    Sign in
+                  <Link to="/login" className="font-semibold text-violet-300 hover:text-violet-200">
+                    Log in
                   </Link>
                 </p>
               </CardFooter>
             </form>
           </Card>
+          </div>
         </section>
       </div>
     </div>

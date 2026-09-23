@@ -33,7 +33,7 @@ export const Login = () => {
     try {
       await login(email, password);
       success("Welcome back to DocuMind!");
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setErrorMessage(err.message || "Invalid email or password");
       error(err.message || "Login failed");
@@ -43,10 +43,10 @@ export const Login = () => {
   };
 
   return (
-    <div className="bg-background text-foreground min-h-screen w-screen overflow-x-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-[46%_54%] min-h-screen">
+    <div className="min-h-dvh w-full overflow-x-hidden bg-[#080512] text-white">
+      <div className="grid min-h-dvh grid-cols-1">
         {/* Left Hero section matching Screen-1 */}
-        <section className="bg-[#1e1b4b] text-white flex relative p-8 lg:p-12 flex-col justify-between min-h-[420px] lg:min-h-screen overflow-hidden">
+        <section className="hidden">
           <div className="relative z-10">
             <div className="font-bold text-xl tracking-tight flex items-center gap-2.5">
               <div className="size-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center shadow-xs">
@@ -103,23 +103,24 @@ export const Login = () => {
         </section>
 
         {/* Right Form section matching Screen-1 */}
-        <section className="bg-muted/30 flex relative p-6 sm:p-12 justify-center items-center min-h-screen">
-          <div className="shadow-2xs rounded-xl bg-background text-foreground text-xs border border-border flex absolute top-6 right-6 px-3.5 py-2 items-center gap-2">
-            <span className="rounded-full bg-emerald-500 size-2 animate-pulse" />
-            <span className="font-medium">All systems operational</span>
+        <section className="flex min-h-dvh items-start justify-center overflow-y-auto bg-[#080512] p-4 sm:p-8 lg:items-center">
+          <div className="flex w-full max-w-[420px] flex-col items-center py-6 sm:py-10">
+            <div className="mb-9 flex items-center gap-2.5 text-lg font-semibold tracking-tight text-white">
+              <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 text-white shadow-xs">
+                <Sparkles className="size-4" />
+              </div>
+              <span>DocuMind</span>
+            </div>
+
+          <div className="mb-7 text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Welcome back</h1>
+            <p className="mt-2 text-sm text-slate-400">Sign in to continue to your workspace.</p>
           </div>
 
-          <Card className="shadow-sm rounded-2xl bg-background border-border p-6 sm:p-8 w-full max-w-[420px]">
+          <Card className="w-full rounded-2xl border border-white/10 bg-white/[0.06] p-5 shadow-2xl shadow-black/20 sm:p-7">
             <CardHeader className="p-0 gap-2 mb-6">
-              <div className="font-bold text-primary text-xs tracking-widest uppercase">
-                WELCOME BACK
-              </div>
-              <CardTitle className="font-bold text-2xl sm:text-3xl tracking-tight text-foreground">
-                Sign in to your workspace
-              </CardTitle>
-              <CardDescription className="text-muted-foreground text-sm">
-                Continue where you left off.
-              </CardDescription>
+              <CardTitle className="text-lg font-semibold tracking-tight text-white">Sign in</CardTitle>
+              <CardDescription className="text-sm text-slate-400">Use your account details below.</CardDescription>
             </CardHeader>
 
             {errorMessage && (
@@ -132,14 +133,15 @@ export const Login = () => {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <CardContent className="p-0 flex flex-col gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label className="text-slate-200" htmlFor="email">Email</Label>
                   <div className="relative">
                     <Mail className="-translate-y-1/2 text-muted-foreground absolute top-1/2 left-3.5 size-4" />
                     <Input
                       id="email"
                       type="email"
                       required
-                      className="pl-10.5 h-11 rounded-xl"
+                      placeholder="you@example.com"
+                      className="h-11 rounded-lg border-white/10 bg-black/20 pl-10.5 text-white placeholder:text-slate-500"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
@@ -148,7 +150,7 @@ export const Login = () => {
 
                 <div className="grid gap-2">
                   <div className="flex justify-between items-center">
-                    <Label htmlFor="password">Password</Label>
+                    <Label className="text-slate-200" htmlFor="password">Password</Label>
                   </div>
                   <div className="relative">
                     <LockKeyhole className="-translate-y-1/2 text-muted-foreground absolute top-1/2 left-3.5 size-4" />
@@ -156,7 +158,8 @@ export const Login = () => {
                       id="password"
                       type="password"
                       required
-                      className="pl-10.5 h-11 rounded-xl"
+                      placeholder="Enter your password"
+                      className="h-11 rounded-lg border-white/10 bg-black/20 pl-10.5 text-white placeholder:text-slate-500"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
@@ -168,7 +171,7 @@ export const Login = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-primary text-primary-foreground w-full h-11 text-sm font-semibold shadow-xs hover:shadow-md hover:-translate-y-0.5"
+                  className="h-11 w-full rounded-lg bg-violet-600 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 hover:bg-violet-500"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
@@ -180,15 +183,16 @@ export const Login = () => {
                   )}
                 </Button>
 
-                <p className="text-center text-xs text-muted-foreground">
-                  Don't have an account?{" "}
-                  <Link to="/register" className="font-semibold text-primary hover:underline">
-                    Sign up
+                <p className="text-center text-xs text-slate-400">
+                  Don&apos;t have an account?{" "}
+                  <Link to="/register" className="font-semibold text-violet-300 hover:text-violet-200">
+                    Create one
                   </Link>
                 </p>
               </CardFooter>
             </form>
           </Card>
+          </div>
         </section>
       </div>
     </div>

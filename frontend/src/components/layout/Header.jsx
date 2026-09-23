@@ -149,17 +149,6 @@ export const Header = ({ onOpenMobileMenu }) => {
                   }}
                   className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg text-foreground hover:bg-accent transition-colors cursor-pointer w-full text-left"
                 >
-                  <UserIcon className="size-4 text-muted-foreground" />
-                  <span>Profile</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowMenu(false);
-                    navigate("/settings");
-                  }}
-                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg text-foreground hover:bg-accent transition-colors cursor-pointer w-full text-left"
-                >
                   <Settings className="size-4 text-muted-foreground" />
                   <span>Settings</span>
                 </button>
@@ -168,8 +157,8 @@ export const Header = ({ onOpenMobileMenu }) => {
                   type="button"
                   onClick={() => {
                     setShowMenu(false);
+                    navigate("/");
                     logout();
-                    navigate("/login");
                   }}
                   className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg text-destructive hover:bg-destructive/10 transition-colors cursor-pointer w-full text-left"
                 >

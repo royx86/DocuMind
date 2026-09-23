@@ -19,7 +19,7 @@ export const Sidebar = () => {
   const { logout } = useAuth();
 
   const navItems = [
-    { label: "Overview", path: "/", icon: LayoutDashboard },
+    { label: "Overview", path: "/dashboard", icon: LayoutDashboard },
     { label: "New Chat", path: "/chat", icon: MessageSquarePlus },
     { label: "Documents", path: "/documents", icon: FileText },
     { label: "Practice Quiz", path: "/quiz", icon: GraduationCap },
@@ -32,7 +32,7 @@ export const Sidebar = () => {
       {/* Brand */}
       <div
         className="flex pr-2 pl-2 items-center gap-2.5 h-11 cursor-pointer group"
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/dashboard")}
       >
         <div className="size-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200">
           <Sparkles className="size-4.5" />
@@ -52,8 +52,8 @@ export const Sidebar = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
-            item.path === "/"
-              ? location.pathname === "/"
+            item.path === "/dashboard"
+              ? location.pathname === "/dashboard"
               : location.pathname.startsWith(item.path);
 
           return (
@@ -80,8 +80,8 @@ export const Sidebar = () => {
         <button
           type="button"
           onClick={() => {
+            navigate("/");
             logout();
-            navigate("/login");
           }}
           className="font-medium text-left rounded-xl flex pr-3.5 pl-3.5 items-center gap-3 h-11 text-sm w-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive cursor-pointer transition-all duration-200 group"
         >

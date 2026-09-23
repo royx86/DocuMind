@@ -23,14 +23,14 @@ export const QuizResult = ({
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-8 pb-12 animate-in fade-in duration-200">
+    <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-8 overflow-hidden pb-12 animate-in fade-in duration-200">
       {/* Score Summary Card */}
-      <Card className="rounded-2xl p-8 border-border text-center flex flex-col items-center gap-6 shadow-xs">
+      <Card className="w-full min-w-0 rounded-2xl border-border p-5 text-center flex flex-col items-center gap-6 shadow-xs sm:p-8">
         <div>
           <Badge variant="brand" className="uppercase tracking-widest text-[11px] mb-3">
             Quiz Completed
           </Badge>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="w-full max-w-full break-all line-clamp-2 text-xl font-bold leading-tight tracking-tight text-foreground sm:text-2xl md:text-3xl">
             {result.document_name}
           </h1>
           <p className="text-muted-foreground text-sm mt-1 capitalize">
@@ -67,7 +67,7 @@ export const QuizResult = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        <div className="flex w-full flex-wrap items-center justify-center gap-3">
           <Button variant="outline" onClick={onRetry} className="gap-2">
             <RotateCcw className="size-4" />
             <span>Retry Quiz</span>
@@ -90,7 +90,7 @@ export const QuizResult = ({
         </h2>
 
         {result.questions.map((q, idx) => (
-          <Card key={q.id} className="p-6 rounded-xl border-border flex flex-col gap-4 shadow-2xs">
+          <Card key={q.id} className="w-full min-w-0 p-5 rounded-xl border-border flex flex-col gap-4 shadow-2xs sm:p-6">
             <div className="flex justify-between items-start gap-3">
               <span className="font-semibold text-sm text-foreground">
                 Question {idx + 1}
@@ -112,7 +112,7 @@ export const QuizResult = ({
               )}
             </div>
 
-            <p className="text-sm md:text-base font-medium text-foreground">
+            <p className="break-words [overflow-wrap:anywhere] text-sm md:text-base font-medium text-foreground">
               {q.question}
             </p>
 
