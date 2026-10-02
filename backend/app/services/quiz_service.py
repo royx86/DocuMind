@@ -631,7 +631,7 @@ def generate_flashcards(document: Document, count: int = 10) -> FlashcardsRespon
         for i, q in enumerate(sample, 1):
             ans_letter = q["correct_answer"]
             correct_text = q.get(f"option_{ans_letter.lower()}", "")
-            back = f"Option ({ans_letter}): {correct_text}\n\n{q['explanation']}"
+            back = f"{correct_text}\n\n{q['explanation']}"
             cards.append(
                 FlashcardItem(
                     id=str(i),
