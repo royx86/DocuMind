@@ -42,7 +42,7 @@ async def register_user(db: AsyncSession, user_in: UserRegister) -> Token:
 async def authenticate_user(db: AsyncSession, user_in: UserLogin) -> Token:
     result = await db.execute(select(User).where(User.email == user_in.email.lower()))
     user = result.scalar_one_or_none()
-    if not user or not verify_password(user_in.password, user.password_hash):
+    if not user or not user.password_hash or not verify_password(user_in.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password.",

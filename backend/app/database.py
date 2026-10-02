@@ -2,8 +2,9 @@ import asyncio
 import logging
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 from sqlalchemy.engine import make_url
+from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.orm import declarative_base
 from app.config import settings
 
@@ -108,6 +109,7 @@ async def init_db(max_retries: int = 10, delay: float = 2.0) -> None:
             )
             async with engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
+                await migrate_schema(conn)
             logger.info("Database tables initialised successfully.")
             return
         except Exception as exc:
@@ -120,11 +122,44 @@ async def init_db(max_retries: int = 10, delay: float = 2.0) -> None:
             await asyncio.sleep(delay)
 
 
+async def migrate_schema(conn: AsyncConnection) -> None:
+    """Add model columns missing from tables created by older builds."""
+    table_names = await conn.run_sync(
+        lambda sync_conn: set(inspect(sync_conn).get_table_names())
+    )
+    quote = conn.dialect.identifier_preparer.quote
+
+    for table in Base.metadata.sorted_tables:
+        if table.name not in table_names:
+            continue
+
+        column_names = await conn.run_sync(
+            lambda sync_conn, table_name=table.name: {
+                column["name"]
+                for column in inspect(sync_conn).get_columns(table_name)
+            }
+        )
+        for column in table.columns:
+            if column.name in column_names:
+                continue
+
+            column_type = column.type.compile(dialect=conn.dialect)
+            logger.warning(
+                "Adding missing database column %s.%s.", table.name, column.name
+            )
+            await conn.execute(
+                text(
+                    f"ALTER TABLE {quote(table.name)} "
+                    f"ADD COLUMN IF NOT EXISTS {quote(column.name)} {column_type}"
+                )
+            )
+
+
 async def database_is_ready() -> bool:
     """Return whether the application can currently reach PostgreSQL."""
     try:
         async with engine.connect() as conn:
-            await conn.execute(text("SELECT 1"))
+            await conn.execute(text("SELECT password_hash FROM users LIMIT 0"))
         return True
     except Exception:
         logger.exception("Database readiness check failed.")
