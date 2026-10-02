@@ -1,16 +1,30 @@
+# Web framework
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
+
+# Data validation
 pydantic>=2.9.0
 pydantic[email]>=2.9.0
 email-validator>=2.0.0
 pydantic-settings>=2.6.0
+
+# Database — PostgreSQL only (no SQLite)
 sqlalchemy>=2.0.36
 asyncpg>=0.30.0
-psycopg2-binary>=2.9.10
+greenlet>=3.0.0
+
+# Authentication & Security
 python-jose[cryptography]>=3.3.0
+# bcrypt 4.0.x is compatible with the passlib/jose ecosystem
 bcrypt==4.0.1
+
+# File handling
 python-multipart>=0.0.12
-pypdf>=5.1.0
 aiofiles>=24.1.0
+pypdf>=5.1.0
+
+# HTTP client (for Groq / Gemini / OpenAI API calls)
 httpx>=0.27.0
+
+# Database migrations
 alembic>=1.14.0

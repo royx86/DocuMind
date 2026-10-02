@@ -14,7 +14,6 @@ import {
   X,
   Layers,
   Check,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -203,8 +202,8 @@ export const Chat = () => {
   const activeSelectedDocs = isMultiPdfMode
     ? documents.filter((d) => selectedDocIds.includes(d.id))
     : selectedDoc
-    ? [selectedDoc]
-    : [];
+      ? [selectedDoc]
+      : [];
 
   // Reusable Sidebar Component
   const renderSidebarContent = (isMobile = false) => (
@@ -262,11 +261,10 @@ export const Chat = () => {
                   setIsMultiPdfMode(false);
                   if (selectedDoc) setSelectedDocIds([selectedDoc.id]);
                 }}
-                className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition-all cursor-pointer ${
-                  !isMultiPdfMode
+                className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition-all cursor-pointer ${!isMultiPdfMode
                     ? "bg-background text-foreground shadow-2xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                  }`}
               >
                 Single PDF
               </button>
@@ -278,11 +276,10 @@ export const Chat = () => {
                     setSelectedDocIds([selectedDoc.id]);
                   }
                 }}
-                className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition-all cursor-pointer flex items-center gap-1 ${
-                  isMultiPdfMode
+                className={`px-2 py-0.5 text-[11px] font-medium rounded-md transition-all cursor-pointer flex items-center gap-1 ${isMultiPdfMode
                     ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                  }`}
               >
                 <Layers className="size-3" />
                 <span>Multi-PDF</span>
@@ -335,18 +332,16 @@ export const Chat = () => {
                       key={d.id}
                       type="button"
                       onClick={() => handleToggleDocSelection(d.id)}
-                      className={`flex items-center gap-2 p-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer ${
-                        isChecked
+                      className={`flex items-center gap-2 p-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer ${isChecked
                           ? "bg-primary/10 text-foreground font-medium"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
+                        }`}
                     >
                       <div
-                        className={`size-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
-                          isChecked
+                        className={`size-4 rounded border flex items-center justify-center shrink-0 transition-colors ${isChecked
                             ? "bg-primary border-primary text-primary-foreground"
                             : "border-input bg-background"
-                        }`}
+                          }`}
                       >
                         {isChecked && <Check className="size-3 stroke-[3]" />}
                       </div>
@@ -385,11 +380,10 @@ export const Chat = () => {
               <button
                 key={conv.id}
                 onClick={() => handleSelectConversation(conv)}
-                className={`text-left rounded-xl p-2.5 transition-all duration-180 text-xs flex flex-col gap-1 cursor-pointer ${
-                  isSelected
+                className={`text-left rounded-xl p-2.5 transition-all duration-180 text-xs flex flex-col gap-1 cursor-pointer ${isSelected
                     ? "bg-primary/12 text-primary font-semibold shadow-2xs"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground hover:translate-x-0.5"
-                }`}
+                  }`}
               >
                 <span className="truncate font-medium text-foreground">{conv.title}</span>
                 <span className="truncate text-[10px] text-muted-foreground flex items-center gap-1">
@@ -428,9 +422,8 @@ export const Chat = () => {
 
       {/* Desktop Left Chat Workspace Sidebar */}
       <aside
-        className={`bg-background border-r border-border hidden lg:flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${
-          sidebarCollapsed ? "w-0 border-r-0" : "w-[300px]"
-        }`}
+        className={`bg-background border-r border-border hidden lg:flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${sidebarCollapsed ? "w-0 border-r-0" : "w-[300px]"
+          }`}
       >
         <div className="w-[300px] h-full flex flex-col">
           {renderSidebarContent(false)}

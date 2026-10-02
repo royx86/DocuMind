@@ -71,11 +71,10 @@ export const Settings = () => {
               <button
                 type="button"
                 onClick={() => setTheme("light")}
-                className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer text-left ${
-                  theme === "light"
+                className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer text-left ${theme === "light"
                     ? "border-primary bg-primary/5 text-foreground shadow-xs"
                     : "border-border hover:border-border/80 hover:bg-muted/40 text-muted-foreground"
-                }`}
+                  }`}
               >
                 <div className={`p-3 rounded-xl ${theme === "light" ? "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}>
                   <Sun className="size-6" />
@@ -89,11 +88,10 @@ export const Settings = () => {
               <button
                 type="button"
                 onClick={() => setTheme("dark")}
-                className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer text-left ${
-                  theme === "dark"
+                className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer text-left ${theme === "dark"
                     ? "border-primary bg-primary/10 text-foreground shadow-xs"
                     : "border-border hover:border-border/80 hover:bg-muted/40 text-muted-foreground"
-                }`}
+                  }`}
               >
                 <div className={`p-3 rounded-xl ${theme === "dark" ? "bg-indigo-950/60 text-indigo-400" : "bg-muted text-muted-foreground"}`}>
                   <Moon className="size-6" />
@@ -117,7 +115,7 @@ export const Settings = () => {
           </div>
           <Card className="p-6 gap-6 rounded-2xl shadow-xs">
             <CardHeader className="p-0 flex-row items-center gap-4">
-              <div className="font-bold rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white text-lg flex justify-center items-center shrink-0 size-16 shadow-2xs">
+              <div className="font-bold rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-lg flex justify-center items-center shrink-0 size-16 shadow-2xs">
                 {getInitials(user?.name)}
               </div>
               <div>
@@ -163,23 +161,23 @@ export const Settings = () => {
           <div>
             <h2 className="font-bold text-lg text-foreground">AI & Model Configuration</h2>
             <p className="text-muted-foreground text-sm">
-              DocuMind features a built-in smart offline RAG and quiz engine. Optionally supply your own API key for Gemini or OpenAI.
+              DocuMind features a built-in smart offline RAG and quiz engine. Optionally supply your own API key for external AI providers.
             </p>
           </div>
           <Card className="p-6 rounded-2xl shadow-xs">
             <form onSubmit={handleSaveApiKeys} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="gemini-key">Google Gemini API Key (Optional)</Label>
+                <Label htmlFor="gemini-key">Cloud LLM API Key (Optional)</Label>
                 <Input
                   id="gemini-key"
                   type="password"
-                  placeholder="AIzaSy..."
+                  placeholder="Paste your API key..."
                   value={geminiKey}
                   onChange={(e) => setGeminiKey(e.target.value)}
                   className="rounded-xl"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Used for Gemini 2.0 Flash document Q&A and exam quiz generation.
+                  Optional API key for accelerated cloud model Q&A and exam quiz generation.
                 </p>
               </div>
 

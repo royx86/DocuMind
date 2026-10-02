@@ -6,7 +6,7 @@ import {
   FolderOpen,
   MessageCircle,
   MessageSquarePlus,
-  Sparkles,
+  Search,
   Upload,
   GraduationCap,
   Paperclip,
@@ -86,7 +86,7 @@ export const Dashboard = () => {
                   <span>Ask your documents anything</span>
                 </label>
                 <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                  <Sparkles className="size-4" />
+                  <Search className="size-4" />
                 </div>
               </div>
               <div className="rounded-xl bg-background border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30 flex p-4 flex-col gap-4 min-h-28 transition-all">

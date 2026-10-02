@@ -9,10 +9,7 @@ const ThemeContext = createContext({
 export const ThemeProvider = ({ children }) => {
   const [theme, setThemeState] = useState(() => {
     const saved = localStorage.getItem("documind_theme");
-    if (saved === "dark" || saved === "light") return saved;
-    if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
+    if (saved === "light" || saved === "dark") return saved;
     return "light";
   });
 

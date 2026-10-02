@@ -10,6 +10,7 @@ import { Documents } from "@/pages/Documents";
 import { DocumentWorkspace } from "@/pages/DocumentWorkspace";
 import { Chat } from "@/pages/Chat";
 import { Quiz } from "@/pages/Quiz";
+import { Flashcards } from "@/pages/Flashcards";
 import { History } from "@/pages/History";
 import { Settings } from "@/pages/Settings";
 import { Login } from "@/pages/Login";
@@ -23,25 +24,27 @@ export function App() {
         position="top-right"
         toastOptions={{
           duration: 3500,
-          className: "!border !border-border !bg-card !text-card-foreground !shadow-xl !rounded-xl !text-sm !font-medium",
+          className:
+            "!border !border-border !bg-card !text-card-foreground !shadow-xl !rounded-xl !text-sm !font-medium",
         }}
       />
       <BrowserRouter>
         <AuthProvider>
           <ToastProvider>
             <Routes>
-              {/* Public Auth Routes */}
+              {/* Public routes */}
+              <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/" element={<Landing />} />
 
-              {/* Protected Workspace Routes */}
+              {/* Protected workspace routes */}
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/documents" element={<Documents />} />
                 <Route path="/workspace/:id" element={<DocumentWorkspace />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/quiz" element={<Quiz />} />
+                <Route path="/flashcards" element={<Flashcards />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/settings" element={<Settings />} />
               </Route>

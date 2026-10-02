@@ -143,6 +143,18 @@ export const api = {
     return handleResponse(res);
   },
 
+  async getFlashcards(documentId, count = 10) {
+    const res = await fetch(`${API_BASE}/quiz/flashcards`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        document_id: documentId,
+        count,
+      }),
+    });
+    return handleResponse(res);
+  },
+
   async submitSingleAnswer(quizId, questionId, userAnswer) {
     const res = await fetch(`${API_BASE}/quiz/${quizId}/answer`, {
       method: "POST",

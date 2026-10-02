@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { ArrowUp, Paperclip, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowUp, Paperclip, ShieldCheck, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const ChatInput = ({
@@ -58,11 +58,10 @@ export const ChatInput = ({
             <button
               type="button"
               onClick={() => onModeChange && onModeChange("strict")}
-              className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs transition-all duration-200 ${
-                mode === "strict"
+              className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs transition-all duration-200 ${mode === "strict"
                   ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-xs font-semibold"
                   : "text-muted-foreground hover:text-foreground font-medium"
-              }`}
+                }`}
               title="Strict Mode: Answers strictly from the document only."
             >
               <ShieldCheck className="size-3 text-emerald-500" />
@@ -73,16 +72,15 @@ export const ChatInput = ({
             <button
               type="button"
               onClick={() => onModeChange && onModeChange("moderate")}
-              className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs transition-all duration-200 ${
-                mode === "moderate"
-                  ? "bg-background text-indigo-600 dark:text-indigo-400 shadow-xs font-semibold"
+              className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs transition-all duration-200 ${mode === "moderate"
+                  ? "bg-background text-slate-900 dark:text-slate-100 shadow-xs font-semibold"
                   : "text-muted-foreground hover:text-foreground font-medium"
-              }`}
-              title="Moderate Mode: Uses document as anchor and supplements with AI knowledge."
+                }`}
+              title="Moderate Mode: Uses document as anchor and supplements with verified context."
             >
-              <Sparkles className="size-3 text-indigo-500" />
+              <Compass className="size-3 text-slate-700 dark:text-slate-300" />
               <span>Moderate</span>
-              <span className="text-[10px] opacity-75 hidden sm:inline">(PDF + AI)</span>
+              <span className="text-[10px] opacity-75 hidden sm:inline">(Doc + Context)</span>
             </button>
           </div>
 
@@ -134,11 +132,10 @@ export const ChatInput = ({
             size="icon"
             onClick={handleSend}
             disabled={!text.trim() || disabled || uploading}
-            className={`size-9 shrink-0 rounded-xl transition-all duration-200 ${
-              text.trim() && !disabled
+            className={`size-9 shrink-0 rounded-xl transition-all duration-200 ${text.trim() && !disabled
                 ? "bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 active:scale-95"
                 : "bg-muted text-muted-foreground/40 cursor-not-allowed"
-            }`}
+              }`}
             aria-label="Send message"
           >
             <ArrowUp className="size-4.5" />

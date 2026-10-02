@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GraduationCap, Sparkles, Loader2 } from "lucide-react";
+import { GraduationCap, Play, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
@@ -88,11 +88,10 @@ export const QuizSetupModal = ({
                   type="button"
                   onClick={() => setQuestionCount(c)}
                   disabled={generating}
-                  className={`h-10 rounded-xl text-sm font-medium border transition-all duration-180 cursor-pointer ${
-                    questionCount === c
+                  className={`h-10 rounded-xl text-sm font-medium border transition-all duration-180 cursor-pointer ${questionCount === c
                       ? "bg-primary text-primary-foreground border-primary shadow-xs"
                       : "bg-background text-foreground border-border hover:bg-accent hover:border-primary/40"
-                  }`}
+                    }`}
                 >
                   {c}
                 </button>
@@ -112,11 +111,10 @@ export const QuizSetupModal = ({
                   type="button"
                   onClick={() => setDifficulty(d.value)}
                   disabled={generating}
-                  className={`h-10 rounded-xl text-sm font-medium capitalize border transition-all duration-180 cursor-pointer ${
-                    difficulty === d.value
+                  className={`h-10 rounded-xl text-sm font-medium capitalize border transition-all duration-180 cursor-pointer ${difficulty === d.value
                       ? "bg-primary text-primary-foreground border-primary shadow-xs"
                       : `bg-background text-foreground border-border hover:bg-accent ${d.color}`
-                  }`}
+                    }`}
                 >
                   {d.label}
                 </button>
@@ -139,7 +137,7 @@ export const QuizSetupModal = ({
               </>
             ) : (
               <>
-                <Sparkles className="size-4" />
+                <Play className="size-3.5 fill-current" />
                 <span>Generate Quiz</span>
               </>
             )}

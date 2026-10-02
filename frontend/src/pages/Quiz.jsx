@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { GraduationCap, Sparkles, Loader2, ArrowLeft, BookOpen, Layers, CheckCircle2 } from "lucide-react";
+import { GraduationCap, Loader2, ArrowLeft, BookOpen, Layers, CheckCircle2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -116,8 +116,8 @@ export const Quiz = () => {
     const answersList = Object.entries(savedAnswers)
       .filter(([, val]) => val.userAnswer)
       .map(([qid, val]) => ({
-      question_id: qid,
-      user_answer: val.userAnswer,
+        question_id: qid,
+        user_answer: val.userAnswer,
       }));
 
     try {
@@ -242,7 +242,7 @@ export const Quiz = () => {
                 <h2 className="font-semibold text-lg text-foreground">Create Practice Quiz</h2>
                 <p className="text-xs text-muted-foreground">Select your preferences below</p>
               </div>
-              <Sparkles className="size-5 text-primary" />
+              <BookOpen className="size-5 text-primary" />
             </div>
 
             {/* Document Selection */}
@@ -297,11 +297,10 @@ export const Quiz = () => {
                     key={c}
                     type="button"
                     onClick={() => setQuestionCount(c)}
-                    className={`h-11 rounded-xl text-sm font-semibold border transition-all duration-180 cursor-pointer ${
-                      questionCount === c
+                    className={`h-11 rounded-xl text-sm font-semibold border transition-all duration-180 cursor-pointer ${questionCount === c
                         ? "bg-primary text-primary-foreground border-primary shadow-xs scale-[1.02]"
                         : "bg-background text-foreground border-border hover:bg-accent hover:border-primary/40 hover:-translate-y-0.5"
-                    }`}
+                      }`}
                   >
                     {c}
                   </button>
@@ -320,11 +319,10 @@ export const Quiz = () => {
                     key={d.value}
                     type="button"
                     onClick={() => setDifficulty(d.value)}
-                    className={`h-11 rounded-xl text-sm font-semibold capitalize border transition-all duration-180 cursor-pointer ${
-                      difficulty === d.value
+                    className={`h-11 rounded-xl text-sm font-semibold capitalize border transition-all duration-180 cursor-pointer ${difficulty === d.value
                         ? "bg-primary text-primary-foreground border-primary shadow-xs scale-[1.02]"
                         : `bg-background text-foreground border-border hover:bg-accent hover:-translate-y-0.5 ${d.color}`
-                    }`}
+                      }`}
                   >
                     {d.label}
                   </button>
@@ -342,7 +340,7 @@ export const Quiz = () => {
               disabled={!selectedDocId || documents.length === 0}
               className="w-full h-12 text-base font-semibold flex items-center justify-center gap-2 mt-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
             >
-              <Sparkles className="size-5" />
+              <Play className="size-4 fill-current" />
               <span>Generate Practice Quiz</span>
             </Button>
           </Card>
@@ -403,9 +401,8 @@ export const Quiz = () => {
                           </p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className={`text-xs font-bold ${
-                            pct >= 80 ? "text-emerald-600" : pct >= 50 ? "text-amber-600" : "text-red-600"
-                          }`}>
+                          <span className={`text-xs font-bold ${pct >= 80 ? "text-emerald-600" : pct >= 50 ? "text-amber-600" : "text-red-600"
+                            }`}>
                             {pct}%
                           </span>
                           <span className="text-[10px] text-muted-foreground block">

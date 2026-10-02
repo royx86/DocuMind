@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { Bot, Sparkles } from "lucide-react";
+import { Bot, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MessageItem } from "./MessageItem";
 import { ChatInput } from "./ChatInput";
@@ -30,21 +30,21 @@ export const ChatInterface = ({
 
   const sampleQuestions = isMultiDoc
     ? [
-        "Compare the key concepts across these documents",
-        "Summarize the main themes found in all documents",
-        "What are the contrasting points or shared findings?",
-      ]
+      "Compare the key concepts across these documents",
+      "Summarize the main themes found in all documents",
+      "What are the contrasting points or shared findings?",
+    ]
     : [
-        "What are the main objectives?",
-        "Summarize the key takeaways",
-        "What are the potential risks or challenges?",
-      ];
+      "What are the main objectives?",
+      "Summarize the key takeaways",
+      "What are the potential risks or challenges?",
+    ];
 
   const placeholderText = isMultiDoc
     ? `Ask anything across ${activeDocs.length} documents...`
     : currentDoc
-    ? `Ask anything about ${currentDoc.filename}...`
-    : "Ask a question...";
+      ? `Ask anything about ${currentDoc.filename}...`
+      : "Ask a question...";
 
   return (
     <div className="relative flex flex-col h-full min-h-0 bg-background overflow-hidden">
@@ -54,8 +54,8 @@ export const ChatInterface = ({
           {/* Empty state / Welcome */}
           {messages.length === 0 && (
             <div className="text-center flex flex-col items-center gap-3.5 my-8">
-              <div className="rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex justify-center items-center size-13 shadow-sm">
-                <Bot className="size-6.5" />
+              <div className="rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex justify-center items-center size-12 shadow-xs">
+                <Bot className="size-6" />
               </div>
               <h2 className="font-bold text-2xl tracking-tight text-foreground">
                 {isMultiDoc
@@ -116,7 +116,7 @@ export const ChatInterface = ({
                     onClick={() => onSendMessage(q)}
                     className="rounded-full text-xs py-2 px-4 h-auto hover:border-primary/60 hover:bg-primary/5 hover:text-primary transition-all duration-180"
                   >
-                    <Sparkles className="size-3 mr-1.5 text-primary" />
+                    <HelpCircle className="size-3 mr-1.5 text-primary" />
                     {q}
                   </Button>
                 ))}

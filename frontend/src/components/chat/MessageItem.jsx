@@ -32,7 +32,7 @@ export const MessageItem = ({
   return (
     <div className="flow-root">
       {/* Bot Avatar */}
-      <div className="float-left mr-2 sm:mr-3 rounded-lg sm:rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex justify-center items-center size-7 sm:size-8.5 mt-0.5 sm:mt-1 shadow-2xs">
+      <div className="float-left mr-2 sm:mr-3 rounded-lg sm:rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex justify-center items-center size-7 sm:size-8.5 mt-0.5 sm:mt-1 shadow-2xs">
         <Bot className="size-4 sm:size-4.5" />
       </div>
 

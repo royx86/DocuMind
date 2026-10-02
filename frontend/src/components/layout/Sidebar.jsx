@@ -7,9 +7,10 @@ import {
   Settings,
   LayoutDashboard,
   GraduationCap,
+  Brain,
   LogOut,
-  Sparkles,
 } from "lucide-react";
+import { DocuMindLogo } from "@/components/ui/DocuMindLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ export const Sidebar = () => {
     { label: "New Chat", path: "/chat", icon: MessageSquarePlus },
     { label: "Documents", path: "/documents", icon: FileText },
     { label: "Practice Quiz", path: "/quiz", icon: GraduationCap },
+    { label: "Flashcards", path: "/flashcards", icon: Brain },
     { label: "History", path: "/history", icon: History },
     { label: "Settings", path: "/settings", icon: Settings },
   ];
@@ -31,20 +33,10 @@ export const Sidebar = () => {
     <aside className="bg-sidebar text-foreground border-r border-border hidden md:flex pt-5 pr-4 pb-5 pl-4 flex-col w-[248px] h-screen shrink-0 sticky top-0">
       {/* Brand */}
       <div
-        className="flex pr-2 pl-2 items-center gap-2.5 h-11 cursor-pointer group"
+        className="flex pr-2 pl-2 items-center gap-2.5 h-11 cursor-pointer"
         onClick={() => navigate("/dashboard")}
       >
-        <div className="size-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200">
-          <Sparkles className="size-4.5" />
-        </div>
-        <div className="flex flex-col">
-          <span className="font-bold text-foreground text-xl tracking-tight leading-tight">
-            DocuMind
-          </span>
-          <span className="text-[10px] text-muted-foreground font-medium tracking-wide">
-            AI Study Workspace
-          </span>
-        </div>
+        <DocuMindLogo size="md" withText={true} subtitle="Workspace" />
       </div>
 
       {/* Navigation */}

@@ -115,7 +115,7 @@ export const Header = ({ onOpenMobileMenu }) => {
             aria-label="User profile menu"
             aria-expanded={showMenu}
           >
-            <span className="font-semibold rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white text-xs flex justify-center items-center shrink-0 size-8.5 shadow-2xs group-hover:scale-105 transition-transform">
+            <span className="font-semibold rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs flex justify-center items-center shrink-0 size-8.5 shadow-2xs group-hover:scale-105 transition-transform">
               {getInitials(user?.name)}
             </span>
             <div className="hidden md:flex flex-col text-left">

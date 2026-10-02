@@ -1,11 +1,11 @@
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from app.config import settings
-from app.database import init_db
+from app.config import settings, get_cors_origins
+from app.database import database_is_ready, init_db
 from app.routers import auth_router, documents_router, chat_router, quiz_router
 
 logging.basicConfig(
@@ -17,35 +17,43 @@ logger = logging.getLogger("documind")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting DocuMind backend...")
-    # Initialize database tables
+    logger.info("Starting DocuMind backend…")
     try:
         await init_db()
-    except Exception as e:
-        logger.error(f"Failed to initialize database on startup: {e}")
+    except Exception as exc:
+        logger.error("Failed to initialise database on startup: %s", exc)
+        # Don't re-raise — let the app start so /api/health can report status
     yield
-    logger.info("Shutting down DocuMind backend...")
+    logger.info("Shutting down DocuMind backend.")
 
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Document Q&A + Exam Practice Platform API",
+    description="Document Q&A + Exam Practice Platform — powered by RAG + LLM",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
 )
 
-# CORS configuration
+
+# ── CORS ──────────────────────────────────────────────────────────────────────
+# CORS origins are loaded from the CORS_ORIGINS environment variable via get_cors_origins().
+# If not set, all origins (*) are allowed (development default).
+cors_origins = get_cors_origins()
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
-# Exception handlers for user-friendly error responses
+
+# ── Exception handlers ────────────────────────────────────────────────────────
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = []
@@ -61,17 +69,21 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled error on {request.url.path}: {exc}", exc_info=True)
+    logger.error("Unhandled error on %s: %s", request.url.path, exc, exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "An unexpected server error occurred. Please try again."},
     )
 
 
-# Health check
+# ── Routes ────────────────────────────────────────────────────────────────────
+
 @app.get("/api/health", tags=["Health"])
-async def health_check():
-    return {"status": "healthy", "version": settings.VERSION}
+async def health_check(response: Response):
+    if not await database_is_ready():
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return {"status": "unhealthy", "database": "unavailable", "version": settings.VERSION}
+    return {"status": "healthy", "database": "ready", "version": settings.VERSION}
 
 
 @app.get("/", tags=["Root"])
@@ -83,7 +95,6 @@ async def root():
     }
 
 
-# Include routers
 app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(documents_router, prefix=settings.API_V1_STR)
 app.include_router(chat_router, prefix=settings.API_V1_STR)

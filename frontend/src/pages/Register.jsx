@@ -1,19 +1,29 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Check, FileText, LockKeyhole, Mail, User, Sparkles, AlertCircle, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+  ArrowRight,
+  Brain,
+  LockKeyhole,
+  Mail,
+  User,
+  AlertCircle,
+  Loader2,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  GraduationCap,
+  MessageCircle,
+  FileText,
+} from "lucide-react";
+import { DocuMindLogo } from "@/components/ui/DocuMindLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
+
+const PERKS = [
+  { icon: MessageCircle, text: "Strictly cited Q&A from your own files" },
+  { icon: GraduationCap, text: "Auto-generated practice exams with instant grading" },
+  { icon: Brain, text: "Multi-document synthesis in a unified workspace" },
+];
 
 export const Register = () => {
   const navigate = useNavigate();
@@ -24,6 +34,8 @@ export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -33,27 +45,25 @@ export const Register = () => {
     setErrorMessage("");
 
     if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match");
+      setErrorMessage("Passwords do not match.");
       return;
     }
-
     if (password.length < 6) {
-      setErrorMessage("Password must be at least 6 characters");
+      setErrorMessage("Password must be at least 6 characters.");
       return;
     }
-
     if (!acceptedTerms) {
-      setErrorMessage("Please accept the Terms of Service and Privacy Policy");
+      setErrorMessage("Please accept the Terms of Service to continue.");
       return;
     }
 
     setLoading(true);
     try {
-      await register(name, email, password, confirmPassword);
+      await register(name, email, password);
       success("Account created successfully! Welcome to DocuMind.");
       navigate("/dashboard");
     } catch (err) {
-      setErrorMessage(err.message || "Failed to create account");
+      setErrorMessage(err.message || "Registration failed. Try again.");
       error(err.message || "Registration failed");
     } finally {
       setLoading(false);
@@ -61,181 +71,229 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-dvh w-full overflow-x-hidden bg-[#080512] text-white">
-      <div className="grid min-h-dvh grid-cols-1">
-        {/* Left Hero section matching Screen-1 */}
-        <section className="hidden">
-          <div className="relative z-10">
-            <div className="font-bold text-xl tracking-tight flex items-center gap-2.5">
-              <div className="size-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center shadow-xs">
-                <Sparkles className="size-4" />
+    <div className="min-h-dvh w-full bg-white text-slate-900 flex">
+      {/* ── Left decorative panel ── */}
+      <aside className="relative hidden overflow-hidden lg:flex lg:w-[48%] flex-col justify-between p-12 xl:p-16 bg-slate-50 border-r border-slate-200/80">
+        <div className="relative z-10 flex items-center">
+          <DocuMindLogo size="md" withText={true} subtitle="Workspace" />
+        </div>
+
+        <div className="relative z-10 max-w-sm">
+          {/* Document Preview Card */}
+          <div className="mb-10 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="size-8 rounded-lg bg-slate-100 text-slate-900 flex items-center justify-center">
+                  <FileText className="size-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-900">Cognitive_Psychology_101.pdf</p>
+                  <p className="text-[10px] text-slate-500">24 indexed pages · Grounded</p>
+                </div>
               </div>
-              <span>DocuMind</span>
+              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 rounded-full">
+                Verified
+              </span>
+            </div>
+            <div className="mt-3 text-xs text-slate-600 bg-slate-50 rounded-xl p-3 border border-slate-100">
+              <span className="text-[10px] font-mono font-semibold text-slate-900">Page 14 Citation:</span>
+              <p className="mt-1 text-slate-700 text-xs italic">
+                “Working memory capacity is strictly modulated by prefrontal cortex attenuation…”
+              </p>
             </div>
           </div>
 
-          <div className="relative z-10 max-w-xl my-8">
-            <h1 className="font-bold text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight">
-              Transform your documents into interactive study guides.
+          <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900">
+            Start turning documents into insight — for free.
+          </h2>
+          <p className="mt-3.5 text-sm leading-6 text-slate-600">
+            No credit card needed. Upload your first document and ask your first
+            question in under 2 minutes.
+          </p>
+
+          <ul className="mt-6 space-y-4">
+            {PERKS.map(({ icon: Icon, text }) => (
+              <li key={text} className="flex items-center gap-3">
+                <span className="flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-900 shadow-2xs">
+                  <Icon className="size-4" />
+                </span>
+                <span className="text-sm font-medium text-slate-700">{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="relative z-10 text-xs text-slate-400 font-medium">
+          © {new Date().getFullYear()} DocuMind · Verified Document Knowledge
+        </p>
+      </aside>
+
+      {/* ── Right form panel ── */}
+      <section className="flex flex-1 flex-col items-center justify-center px-5 py-12 sm:px-8 lg:px-12 bg-white">
+        {/* Mobile logo */}
+        <div className="mb-8 flex items-center justify-center lg:hidden">
+          <DocuMindLogo size="md" withText={true} />
+        </div>
+
+        <div className="w-full max-w-[400px]">
+          <div className="mb-8">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+              Create your account
             </h1>
-            <p className="text-indigo-100/80 text-base sm:text-lg leading-relaxed mt-4 max-w-lg">
-              Upload notes, textbooks, and reports. Ask questions, cite sources, and practice with AI-generated quizzes.
+            <p className="mt-2 text-sm text-slate-500">
+              Start turning your documents into clear, cited answers.
             </p>
+          </div>
 
-            <div className="text-indigo-100/90 text-sm grid mt-8 gap-3">
-              <div className="flex items-center gap-3">
-                <Check className="text-indigo-300 size-4 shrink-0" strokeWidth={2.5} />
-                <span>Instant RAG answers with exact page citations</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="text-indigo-300 size-4 shrink-0" strokeWidth={2.5} />
-                <span>Exam practice quizzes with backend scoring & reviews</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Check className="text-indigo-300 size-4 shrink-0" strokeWidth={2.5} />
-                <span>Split-view document reader and workspace</span>
-              </div>
+          {errorMessage && (
+            <div className="mb-5 flex items-center gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+              <AlertCircle className="size-4 shrink-0 text-rose-600" />
+              <span>{errorMessage}</span>
             </div>
-          </div>
+          )}
 
-          <div className="text-indigo-200/60 text-xs relative z-10">
-            Your documents, understood.
-          </div>
-        </section>
-
-        {/* Right Form section */}
-        <section className="flex min-h-dvh items-start justify-center overflow-y-auto bg-[#080512] p-4 sm:p-8 lg:items-center">
-          <div className="flex w-full max-w-[440px] flex-col items-center py-6 sm:py-10">
-            <div className="mb-9 flex items-center gap-2.5 text-lg font-semibold tracking-tight text-white">
-              <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 text-white shadow-xs">
-                <Sparkles className="size-4" />
-              </div>
-              <span>DocuMind</span>
-            </div>
-
-          <div className="mb-7 text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Create your account</h1>
-            <p className="mt-2 text-sm text-slate-400">Start turning documents into clear answers.</p>
-          </div>
-
-          <Card className="w-full rounded-2xl border border-white/10 bg-white/[0.06] p-5 shadow-2xl shadow-black/20 sm:p-7">
-            <CardHeader className="p-0 gap-2 mb-6">
-              <CardTitle className="text-lg font-semibold tracking-tight text-white">Your details</CardTitle>
-              <CardDescription className="text-sm text-slate-400">Set up your DocuMind workspace.</CardDescription>
-            </CardHeader>
-
-            {errorMessage && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-xs text-red-700">
-                <AlertCircle className="size-4 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <CardContent className="p-0 flex flex-col gap-3.5">
-                <div className="grid gap-1.5">
-                  <Label className="text-slate-200" htmlFor="name">Name</Label>
-                  <div className="relative">
-                    <User className="-translate-y-1/2 text-muted-foreground absolute top-1/2 left-3.5 size-4" />
-                    <Input
-                      id="name"
-                      type="text"
-                      required
-                      placeholder="Saswata Roy"
-                      className="h-11 rounded-lg border-white/10 bg-black/20 pl-10.5 text-white placeholder:text-slate-500"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-1.5">
-                  <Label className="text-slate-200" htmlFor="email">Email</Label>
-                  <div className="relative">
-                    <Mail className="-translate-y-1/2 text-muted-foreground absolute top-1/2 left-3.5 size-4" />
-                    <Input
-                      id="email"
-                      type="email"
-                      required
-                      placeholder="you@example.com"
-                      className="h-11 rounded-lg border-white/10 bg-black/20 pl-10.5 text-white placeholder:text-slate-500"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-1.5">
-                  <Label className="text-slate-200" htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <LockKeyhole className="-translate-y-1/2 text-muted-foreground absolute top-1/2 left-3.5 size-4" />
-                    <Input
-                      id="password"
-                      type="password"
-                      required
-                      placeholder="At least 6 characters"
-                      className="h-11 rounded-lg border-white/10 bg-black/20 pl-10.5 text-white placeholder:text-slate-500"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-1.5">
-                  <Label className="text-slate-200" htmlFor="confirm-password">Repeat password</Label>
-                  <div className="relative">
-                    <LockKeyhole className="-translate-y-1/2 text-muted-foreground absolute top-1/2 left-3.5 size-4" />
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      required
-                      placeholder="Repeat password"
-                      className="h-11 rounded-lg border-white/10 bg-black/20 pl-10.5 text-white placeholder:text-slate-500"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-
-              <label className="flex cursor-pointer items-start gap-2 text-xs text-slate-400">
-                <input
-                  type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-0.5 size-3.5 shrink-0 accent-violet-500"
-                />
-                <span>I agree to the Terms of Service and Privacy Policy</span>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="reg-name" className="text-xs font-semibold text-slate-700">
+                Full name
               </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                <input
+                  id="reg-name"
+                  type="text"
+                  required
+                  minLength={2}
+                  placeholder="Your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all"
+                />
+              </div>
+            </div>
 
-              <CardFooter className="p-0 flex flex-col gap-4 mt-2">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="h-11 w-full rounded-lg bg-violet-600 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 hover:bg-violet-500"
+            {/* Email */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="reg-email" className="text-xs font-semibold text-slate-700">
+                Email address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                <input
+                  id="reg-email"
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="reg-password" className="text-xs font-semibold text-slate-700">
+                Password
+              </label>
+              <div className="relative">
+                <LockKeyhole className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                <input
+                  id="reg-password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={6}
+                  placeholder="At least 6 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="size-4 animate-spin" />
-                      <span>Creating account...</span>
-                    </div>
-                  ) : (
-                    "Create account"
-                  )}
-                </Button>
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+            </div>
 
-                <p className="text-center text-xs text-slate-400">
-                  Already have an account?{" "}
-                  <Link to="/login" className="font-semibold text-violet-300 hover:text-violet-200">
-                    Log in
-                  </Link>
-                </p>
-              </CardFooter>
-            </form>
-          </Card>
-          </div>
-        </section>
-      </div>
+            {/* Confirm password */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="reg-confirm-password" className="text-xs font-semibold text-slate-700">
+                Repeat password
+              </label>
+              <div className="relative">
+                <LockKeyhole className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                <input
+                  id="reg-confirm-password"
+                  type={showConfirm ? "text" : "password"}
+                  required
+                  placeholder="Repeat password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm((s) => !s)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showConfirm ? "Hide" : "Show"}
+                >
+                  {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Terms checkbox */}
+            <label className="flex cursor-pointer items-start gap-2.5 text-xs text-slate-600 font-medium">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-0.5 size-3.5 shrink-0 rounded accent-slate-900"
+              />
+              <span>
+                I agree to the{" "}
+                <span className="text-slate-900 underline">Terms of Service</span> and{" "}
+                <span className="text-slate-900 underline">Privacy Policy</span>
+              </span>
+            </label>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 text-sm font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  <span>Creating account…</span>
+                </>
+              ) : (
+                <>
+                  <span>Create account</span>
+                  <ArrowRight className="size-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-xs text-slate-500 font-medium">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="font-semibold text-slate-900 hover:underline transition-colors"
+            >
+              Log in
+            </Link>
+          </p>
+        </div>
+      </section>
     </div>
   );
 };

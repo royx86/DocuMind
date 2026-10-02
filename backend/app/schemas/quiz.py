@@ -84,3 +84,21 @@ class QuizHistoryItem(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class FlashcardItem(BaseModel):
+    id: str
+    front: str
+    back: str
+    hint: Optional[str] = None
+
+
+class FlashcardGenerateRequest(BaseModel):
+    document_id: str
+    count: int = Field(default=10, ge=1, le=50)
+
+
+class FlashcardsResponse(BaseModel):
+    document_id: str
+    document_name: str
+    flashcards: List[FlashcardItem]

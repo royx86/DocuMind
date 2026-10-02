@@ -13,10 +13,13 @@ from app.schemas.quiz import (
     QuizSubmitRequest,
     QuizResultResponse,
     QuizHistoryItem,
+    FlashcardGenerateRequest,
+    FlashcardsResponse,
 )
 from app.services.auth_service import get_current_user
 from app.services.quiz_service import (
     generate_quiz,
+    generate_flashcards,
     submit_single_answer,
     submit_quiz,
     get_quiz_history,
@@ -46,6 +49,22 @@ async def create_quiz(
         question_count=request.question_count,
         difficulty=request.difficulty,
     )
+
+
+@router.post("/flashcards", response_model=FlashcardsResponse)
+async def create_flashcards(
+    request: FlashcardGenerateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    doc_res = await db.execute(
+        select(Document).where(Document.id == request.document_id, Document.user_id == current_user.id)
+    )
+    document = doc_res.scalar_one_or_none()
+    if not document:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found.")
+
+    return generate_flashcards(document=document, count=request.count)
 
 
 @router.post("/{quiz_id}/answer", response_model=SingleAnswerResponse)

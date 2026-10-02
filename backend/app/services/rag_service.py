@@ -7,37 +7,79 @@ from app.config import settings
 from app.models.document import Document
 from app.schemas.chat import SourceItem
 
+from app.utils.pdf_extractor import (
+    clean_document_text,
+    is_header_or_footer_noise,
+    is_valid_statement,
+)
+
 logger = logging.getLogger(__name__)
 
 
+def extract_page_title(page_text: str, page_num: int) -> str:
+    """Extracts a descriptive, clean section heading or topic title for a page."""
+    lines = [l.strip() for l in page_text.split("\n") if l.strip()]
+    if not lines:
+        return f"Page {page_num}"
+
+    for line in lines[:4]:
+        # Section or chapter headers
+        sec_m = re.match(r"^(?:SECTION|CHAPTER|PART|MODULE)\s+\d+\s*[—–-]\s*(.*?)(?:\s*\(.*?\))?$", line, re.IGNORECASE)
+        if sec_m:
+            return sec_m.group(1).strip()
+        # Question bank titles
+        q_m = re.match(r"^Q(\d+)[\.:\)]\s*(.*)", line, re.IGNORECASE)
+        if q_m:
+            q_text = q_m.group(2).strip()
+            return f"Q{q_m.group(1)}: {q_text[:35]}..." if len(q_text) > 35 else f"Q{q_m.group(1)}: {q_text}"
+        # Meaningful heading
+        if (
+            not re.match(r"^[A-D]\)", line)
+            and not line.startswith("Answer:")
+            and not line.startswith("Explanation:")
+            and len(line) <= 65
+            and not re.search(r"\|", line)
+            and not is_header_or_footer_noise(line)
+        ):
+            return line
+
+    return f"Page {page_num}"
+
+
 def parse_pages_from_content(content_text: str) -> List[Dict[str, any]]:
-    """Splits document content into page-indexed blocks."""
+    """Splits document content into sanitized, page-indexed blocks."""
     if not content_text:
         return []
 
+    # Clean text to remove recurring headers and metadata
+    cleaned_content = clean_document_text(content_text)
+
     # Regex matches '--- Page X ---'
     pattern = r"--- Page (\d+) ---\n"
-    parts = re.split(pattern, content_text)
+    parts = re.split(pattern, cleaned_content)
 
     pages = []
-    # If content does not contain markers
+    # If content does not contain page markers
     if len(parts) <= 1:
-        pages.append({"page": 1, "text": content_text.strip(), "title": "Document Content"})
+        text_clean = cleaned_content.strip()
+        pages.append({"page": 1, "text": text_clean, "title": extract_page_title(text_clean, 1)})
         return pages
 
-    # parts[0] is header or empty, parts[1] is page 1, parts[2] is text, etc.
     i = 1
     while i < len(parts) - 1:
         page_num = int(parts[i])
         page_text = parts[i + 1].strip()
 
-        # Try to find a header/title in the first 1-2 lines
+        # Deduplicate internal lines and strip residual header noise
         lines = [line.strip() for line in page_text.split("\n") if line.strip()]
-        title = lines[0][:40] if lines else f"Page {page_num}"
+        clean_lines = [l for l in lines if not is_header_or_footer_noise(l)]
+        clean_page_str = "\n".join(clean_lines).strip()
+
+        title = extract_page_title(clean_page_str, page_num)
 
         pages.append({
             "page": page_num,
-            "text": page_text,
+            "text": clean_page_str,
             "title": title,
         })
         i += 2
@@ -46,11 +88,10 @@ def parse_pages_from_content(content_text: str) -> List[Dict[str, any]]:
 
 
 def score_text_relevance(query: str, text: str) -> float:
-    """Calculates relevance score using word overlap and phrase matching."""
+    """Calculates relevance score using word overlap and phrase matching on clean body text."""
     if not text:
         return 0.0
 
-    # Tokenize words
     query_tokens = [w.lower() for w in re.findall(r"\b\w{3,}\b", query)]
     if not query_tokens:
         return 0.1
@@ -68,7 +109,7 @@ def score_text_relevance(query: str, text: str) -> float:
         if count > 0:
             score += 1.0 + min(count * 0.2, 2.0)
 
-    # Normalize by page length to prevent bias toward giant pages
+    # Normalize by page length
     length_penalty = max(1.0, len(text.split()) / 200.0)
     return score / length_penalty
 
@@ -81,7 +122,6 @@ def retrieve_relevant_pages(query: str, pages: List[Dict[str, any]], top_k: int 
         scored_pages.append((s, page))
 
     scored_pages.sort(key=lambda x: x[0], reverse=True)
-    # Filter pages with at least some relevance, or fallback to first page if nothing matches
     top = [p for s, p in scored_pages[:top_k] if s > 0.0]
     if not top and pages:
         top = [pages[0]]
@@ -167,64 +207,93 @@ def generate_local_extractive_answer(
 ) -> Tuple[str, List[SourceItem]]:
     """
     Intelligent local RAG engine when external LLM API is unavailable.
-    Synthesizes sentences matching query keywords with cited page numbers.
+    Synthesizes rich conceptual explanations and relevant findings with accurate citations.
     """
-    query_words = set([w.lower() for w in re.findall(r"\b\w{3,}\b", question)])
-    found_sentences = []
-    sources = []
+    query_tokens = set([w.lower() for w in re.findall(r"\b\w{3,}\b", question)])
+    page_insights = []
+    sources: List[SourceItem] = []
 
     for page in relevant_pages:
         page_num = page["page"]
         title = page.get("title", f"Page {page_num}")
         text = page["text"]
 
-        # Split text into sentences
-        sentences = re.split(r"(?<=[.!?])\s+", text)
-        page_best_sentences = []
+        # 1. Look for structured Question Bank / Explanation blocks
+        qa_matches = re.finditer(
+            r"(?:Q\d+[\.:\)]\s*(?P<q>.*?)\n.*?)?Answer:\s*(?P<ans>.*?)\n\s*(?:Explanation|Explain|Rationale)\s*:\s*(?P<expl>.*?)(?=(?:\n\s*Q\d+[\.:\)]|\n\s*SECTION|\Z))",
+            text,
+            re.DOTALL | re.IGNORECASE,
+        )
+        page_qa_hits = []
+        for m in qa_matches:
+            q_clean = " ".join(m.group("q").split()) if m.group("q") else ""
+            ans_clean = " ".join(m.group("ans").split()) if m.group("ans") else ""
+            expl_clean = " ".join(m.group("expl").split()) if m.group("expl") else ""
+            combined = f"{q_clean} {ans_clean} {expl_clean}".lower()
+            score = sum(1 for w in query_tokens if w in combined)
+            if score > 0:
+                page_qa_hits.append((score, q_clean, ans_clean, expl_clean))
 
-        for sent in sentences:
-            sent_clean = sent.strip()
-            if len(sent_clean) < 20:
-                continue
-            # Calculate match
-            sent_words = set([w.lower() for w in re.findall(r"\b\w{3,}\b", sent_clean)])
-            overlap = len(query_words.intersection(sent_words))
-            if overlap > 0:
-                page_best_sentences.append((overlap, sent_clean))
+        page_qa_hits.sort(key=lambda x: x[0], reverse=True)
 
-        page_best_sentences.sort(key=lambda x: x[0], reverse=True)
-
-        if page_best_sentences:
-            top_sents = [s for _, s in page_best_sentences[:2]]
-            found_sentences.extend([(page_num, s) for s in top_sents])
-            snippet = top_sents[0][:120] + ("..." if len(top_sents[0]) > 120 else "")
+        if page_qa_hits:
+            top_hit = page_qa_hits[0]
+            score, q_c, ans_c, expl_c = top_hit
+            snippet = expl_c[:120] + ("..." if len(expl_c) > 120 else "")
             sources.append(SourceItem(page=page_num, title=title, snippet=snippet))
 
-    if not found_sentences:
-        # If no direct keyword match, provide general document overview from first relevant page
+            entry = f"**From Page {page_num} ({title}):**\n"
+            if expl_c:
+                entry += f"- **Key Insight:** {expl_c}\n"
+            if q_c:
+                entry += f"- *Exam Context:* {q_c} *(Answer: {ans_c})*\n"
+            page_insights.append(entry)
+            continue
+
+        # 2. General document sentence extraction
+        sentences: List[str] = []
+        for line in text.split("\n"):
+            line_str = line.strip()
+            if line_str and not is_header_or_footer_noise(line_str):
+                for s in re.split(r"(?<=[.!?])\s+", line_str):
+                    s_clean = " ".join(s.strip().split())
+                    if len(s_clean) >= 25:
+                        sentences.append(s_clean)
+
+        page_sents = []
+        for s_clean in sentences:
+            if not is_valid_statement(s_clean):
+                continue
+            words = set([w.lower() for w in re.findall(r"\b\w{3,}\b", s_clean)])
+            overlap = len(query_tokens.intersection(words))
+            if overlap > 0:
+                page_sents.append((overlap, s_clean))
+
+        page_sents.sort(key=lambda x: x[0], reverse=True)
+        if page_sents:
+            top_sents = [s for _, s in page_sents[:2]]
+            snippet = top_sents[0][:120] + ("..." if len(top_sents[0]) > 120 else "")
+            sources.append(SourceItem(page=page_num, title=title, snippet=snippet))
+            bullets = "\n".join([f"- {s}" for s in top_sents])
+            page_insights.append(f"**From Page {page_num} ({title}):**\n{bullets}\n")
+
+    if not page_insights:
+        # Fallback to preview of first relevant page
         p = relevant_pages[0] if relevant_pages else {"page": 1, "title": "Overview", "text": ""}
-        text_preview = p["text"][:350]
+        text_preview = p["text"][:350].strip()
         if text_preview:
+            snippet = text_preview[:120] + ("..." if len(text_preview) > 120 else "")
+            sources = [SourceItem(page=p["page"], title=p.get("title", f"Page {p['page']}"), snippet=snippet)]
             answer = (
-                f"Based on **{document_name}**, here is the relevant section regarding your question:\n\n"
-                f"> \"{text_preview.strip()}...\"\n\n"
+                f"Based on **{document_name}**, here is the most relevant section regarding your question:\n\n"
+                f"> \"{text_preview}...\"\n\n"
                 f"You can review the full details on **Page {p['page']}**."
             )
-            sources = [SourceItem(page=p["page"], title=p.get("title", f"Page {p['page']}"), snippet=text_preview[:120])]
             return answer, sources
-        else:
-            return "I couldn't find specific information about that in the document. Please try rephrasing your question.", []
-
-    # Format synthesized answer
-    grouped_by_page: Dict[int, List[str]] = {}
-    for p_num, sent in found_sentences:
-        grouped_by_page.setdefault(p_num, []).append(sent)
+        return "I couldn't find specific information about that in the document. Please try rephrasing your question.", []
 
     answer_parts = [f"Based on **{document_name}**, here are the key findings:\n"]
-    for p_num, sents in grouped_by_page.items():
-        bullet_points = "\n".join([f"- {s}" for s in sents])
-        answer_parts.append(f"**From Page {p_num}:**\n{bullet_points}\n")
-
+    answer_parts.extend(page_insights)
     return "\n".join(answer_parts), sources
 
 
@@ -240,7 +309,7 @@ async def answer_document_question(
       - 'strict': Answers strictly and exclusively from document excerpts.
       - 'moderate': Uses document as primary anchor, supplementing with general AI knowledge if needed.
     """
-    content = document.content_text or ""
+    content = clean_document_text(document.content_text or "")
     pages = parse_pages_from_content(content)
 
     if not pages:
@@ -248,10 +317,18 @@ async def answer_document_question(
 
     relevant_pages = retrieve_relevant_pages(question, pages, top_k=3)
 
-    # Check for external AI keys
+    # Check for external AI keys (ignoring placeholders)
     groq_key = settings.GROQ_API_KEY
+    if groq_key and "your_groq_api_key" in groq_key:
+        groq_key = None
+
     api_key = settings.GEMINI_API_KEY or settings.AI_API_KEY
+    if api_key and "your_" in api_key:
+        api_key = None
+
     openai_key = settings.OPENAI_API_KEY
+    if openai_key and "your_" in openai_key:
+        openai_key = None
 
     context_str = "\n\n".join(
         [f"[Page {p['page']} - {p.get('title', '')}]\n{p['text']}" for p in relevant_pages]
@@ -380,10 +457,18 @@ async def answer_multi_document_question(
 
     context_str = "\n\n".join(context_sections)
 
-    # Check for external AI keys
+    # Check for external AI keys (ignoring placeholders)
     groq_key = settings.GROQ_API_KEY
+    if groq_key and "your_groq_api_key" in groq_key:
+        groq_key = None
+
     api_key = settings.GEMINI_API_KEY or settings.AI_API_KEY
+    if api_key and "your_" in api_key:
+        api_key = None
+
     openai_key = settings.OPENAI_API_KEY
+    if openai_key and "your_" in openai_key:
+        openai_key = None
 
     is_strict = (mode or "strict").lower() == "strict"
 

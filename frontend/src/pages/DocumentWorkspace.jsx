@@ -5,7 +5,7 @@ import {
   PanelRightClose,
   MessageSquare,
   GraduationCap,
-  Sparkles,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -131,7 +131,7 @@ export const DocumentWorkspace = () => {
           <header className="border-b border-border flex px-4 md:px-8 justify-between items-center shrink-0 h-16 bg-background">
             <div className="flex items-center gap-3 min-w-0">
               <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Sparkles className="size-4.5" />
+                <BookOpen className="size-4.5" />
               </div>
               <div className="min-w-0">
                 <p className="font-semibold text-sm truncate text-foreground">{document.filename}</p>

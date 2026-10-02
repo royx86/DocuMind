@@ -22,115 +22,11 @@ from app.services.rag_service import answer_document_question, answer_multi_docu
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
 
-@router.post("/{document_id}", response_model=ChatResponse)
-async def chat_with_document(
-    document_id: str,
-    request: ChatRequest,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    is_multi = (request.document_ids and len(request.document_ids) > 1) or document_id == "multi"
-
-    if is_multi and request.document_ids:
-        docs_res = await db.execute(
-            select(Document).where(Document.id.in_(request.document_ids), Document.user_id == current_user.id)
-        )
-        documents = list(docs_res.scalars().all())
-        if not documents:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No matching documents found.")
-        document = documents[0]  # Primary document for conversation relationship
-    else:
-        target_id = document_id if document_id != "multi" else (request.document_ids[0] if request.document_ids else None)
-        if not target_id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No document specified.")
-        doc_res = await db.execute(
-            select(Document).where(Document.id == target_id, Document.user_id == current_user.id)
-        )
-        document = doc_res.scalar_one_or_none()
-        if not document:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found.")
-        documents = [document]
-
-    # Find or create conversation
-    conversation = None
-    if request.conversation_id:
-        conv_res = await db.execute(
-            select(Conversation).where(
-                Conversation.id == request.conversation_id,
-                Conversation.user_id == current_user.id,
-            )
-        )
-        conversation = conv_res.scalar_one_or_none()
-
-    if not conversation:
-        # Create new conversation with title derived from user question
-        title = request.message[:45].strip() + ("..." if len(request.message) > 45 else "")
-        if is_multi and len(documents) > 1:
-            title = f"Multi-doc ({len(documents)} docs): {title}"
-        conversation = Conversation(
-            user_id=current_user.id,
-            document_id=document.id,
-            title=title or "Document Chat",
-        )
-        db.add(conversation)
-        await db.flush()
-        await db.refresh(conversation)
-
-    # Save User message
-    user_msg = Message(
-        conversation_id=conversation.id,
-        role="user",
-        content=request.message,
-    )
-    db.add(user_msg)
-    await db.flush()
-    await db.refresh(user_msg)
-
-    # Generate answer with RAG (multi-document or single document)
-    if is_multi and len(documents) > 1:
-        answer_text, sources = await answer_multi_document_question(
-            documents=documents,
-            question=request.message,
-            mode=request.mode or "moderate",
-        )
-    else:
-        answer_text, sources = await answer_document_question(
-            document=document,
-            question=request.message,
-            mode=request.mode or "moderate",
-        )
-
-    sources_json = json.dumps([s.model_dump() for s in sources]) if sources else None
-
-    # Save Assistant message
-    assistant_msg = Message(
-        conversation_id=conversation.id,
-        role="assistant",
-        content=answer_text,
-        sources=sources_json,
-    )
-    db.add(assistant_msg)
-    await db.flush()
-    await db.refresh(assistant_msg)
-
-    return ChatResponse(
-        conversation_id=conversation.id,
-        user_message=ChatMessage(
-            id=user_msg.id,
-            role=user_msg.role,
-            content=user_msg.content,
-            sources=[],
-            created_at=user_msg.created_at,
-        ),
-        assistant_message=ChatMessage(
-            id=assistant_msg.id,
-            role=assistant_msg.role,
-            content=assistant_msg.content,
-            sources=sources,
-            created_at=assistant_msg.created_at,
-            mode=request.mode or "moderate",
-        ),
-    )
+# ──────────────────────────────────────────────────────────────────────────────
+# IMPORTANT: The static /conversations routes MUST be declared BEFORE the
+# dynamic /{document_id} route, otherwise FastAPI will match the literal
+# string "conversations" as a document_id and never reach these endpoints.
+# ──────────────────────────────────────────────────────────────────────────────
 
 
 @router.get("/conversations", response_model=List[ConversationResponse])
@@ -237,3 +133,137 @@ async def delete_conversation(
     await db.delete(conv)
     await db.flush()
     return {"message": "Conversation deleted successfully"}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Dynamic document route — MUST come after all static routes above
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+@router.post("/{document_id}", response_model=ChatResponse)
+async def chat_with_document(
+    document_id: str,
+    request: ChatRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    is_multi = (request.document_ids and len(request.document_ids) > 1) or document_id == "multi"
+
+    if is_multi and request.document_ids:
+        docs_res = await db.execute(
+            select(Document).where(
+                Document.id.in_(request.document_ids),
+                Document.user_id == current_user.id,
+            )
+        )
+        documents = list(docs_res.scalars().all())
+        if not documents:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No matching documents found.",
+            )
+        document = documents[0]  # Primary doc for the conversation FK
+    else:
+        target_id = (
+            document_id
+            if document_id != "multi"
+            else (request.document_ids[0] if request.document_ids else None)
+        )
+        if not target_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No document specified.",
+            )
+        doc_res = await db.execute(
+            select(Document).where(
+                Document.id == target_id,
+                Document.user_id == current_user.id,
+            )
+        )
+        document = doc_res.scalar_one_or_none()
+        if not document:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Document not found.",
+            )
+        documents = [document]
+
+    # Find or create conversation
+    conversation = None
+    if request.conversation_id:
+        conv_res = await db.execute(
+            select(Conversation).where(
+                Conversation.id == request.conversation_id,
+                Conversation.user_id == current_user.id,
+            )
+        )
+        conversation = conv_res.scalar_one_or_none()
+
+    if not conversation:
+        title = request.message[:45].strip() + ("..." if len(request.message) > 45 else "")
+        if is_multi and len(documents) > 1:
+            title = f"Multi-doc ({len(documents)} docs): {title}"
+        conversation = Conversation(
+            user_id=current_user.id,
+            document_id=document.id,
+            title=title or "Document Chat",
+        )
+        db.add(conversation)
+        await db.flush()
+        await db.refresh(conversation)
+
+    # Save user message
+    user_msg = Message(
+        conversation_id=conversation.id,
+        role="user",
+        content=request.message,
+    )
+    db.add(user_msg)
+    await db.flush()
+    await db.refresh(user_msg)
+
+    # Generate answer using RAG
+    if is_multi and len(documents) > 1:
+        answer_text, sources = await answer_multi_document_question(
+            documents=documents,
+            question=request.message,
+            mode=request.mode or "moderate",
+        )
+    else:
+        answer_text, sources = await answer_document_question(
+            document=document,
+            question=request.message,
+            mode=request.mode or "moderate",
+        )
+
+    sources_json = json.dumps([s.model_dump() for s in sources]) if sources else None
+
+    # Save assistant message
+    assistant_msg = Message(
+        conversation_id=conversation.id,
+        role="assistant",
+        content=answer_text,
+        sources=sources_json,
+    )
+    db.add(assistant_msg)
+    await db.flush()
+    await db.refresh(assistant_msg)
+
+    return ChatResponse(
+        conversation_id=conversation.id,
+        user_message=ChatMessage(
+            id=user_msg.id,
+            role=user_msg.role,
+            content=user_msg.content,
+            sources=[],
+            created_at=user_msg.created_at,
+        ),
+        assistant_message=ChatMessage(
+            id=assistant_msg.id,
+            role=assistant_msg.role,
+            content=assistant_msg.content,
+            sources=sources,
+            created_at=assistant_msg.created_at,
+            mode=request.mode or "moderate",
+        ),
+    )

@@ -20,25 +20,81 @@ from app.schemas.quiz import (
     QuestionReviewItem,
     QuizHistoryItem,
     AnswerItem,
+    FlashcardItem,
+    FlashcardsResponse,
 )
 
 
+from app.utils.pdf_extractor import (
+    clean_document_text,
+    COMMON_VERB_ROOTS,
+    is_valid_statement,
+)
+
+
+def parse_qb_block(block: str) -> Optional[Dict[str, any]]:
+    """Parses a structured Question Bank question block into standard MCQ format."""
+    s = block.strip()
+    m_head = re.match(r"^Q(?P<num>\d+)[\.:\)]\s*(?P<question>.+?)\n\s*A\)\s*(?P<rest>.*)", s, re.DOTALL)
+    if not m_head:
+        return None
+    num = int(m_head.group("num"))
+    question = " ".join(m_head.group("question").split())
+    rest = m_head.group("rest")
+
+    m_opt = re.search(
+        r"^(?P<a>.+?)(?:\n\s*|\s{2,})B\)\s*(?P<b>.+?)(?:\n\s*|\s{2,})C\)\s*(?P<c>.+?)(?:\n\s*|\s{2,})D\)\s*(?P<d>.+?)\n\s*(?:Answer|Ans|Correct(?:\s+Answer)?)\s*:\s*(?P<ans>[A-D])\)?\s*(?P<ans_text>.*?)(?:\n\s*(?:Explanation|Explain|Rationale)\s*:\s*(?P<expl>.*))?$",
+        rest,
+        re.DOTALL | re.IGNORECASE,
+    )
+    if not m_opt:
+        return None
+
+    ans_letter = m_opt.group("ans").strip().upper()
+    expl_text = " ".join(m_opt.group("expl").split()) if m_opt.group("expl") else f"The correct answer is ({ans_letter})."
+
+    return {
+        "order": num,
+        "question": question,
+        "option_a": " ".join(m_opt.group("a").split()),
+        "option_b": " ".join(m_opt.group("b").split()),
+        "option_c": " ".join(m_opt.group("c").split()),
+        "option_d": " ".join(m_opt.group("d").split()),
+        "correct_answer": ans_letter,
+        "explanation": expl_text,
+    }
+
+
+def extract_qb_questions(content: str) -> List[Dict[str, any]]:
+    """Extracts all structured multiple-choice questions if the document is a Question Bank or exam paper."""
+    if not content:
+        return []
+    raw = re.sub(r"--- Page \d+ ---\n", "", content)
+    blocks = re.split(r"\n(?=Q\d+[\.:\)])", raw)
+    questions = []
+    for b in blocks:
+        q = parse_qb_block(b)
+        if q:
+            questions.append(q)
+    return questions
+
+
 def extract_key_statements(content_text: str) -> List[Dict[str, str]]:
-    """Extracts informative sentences and facts from document text."""
+    """Extracts clean informative sentences and facts from general document text."""
     if not content_text:
         return []
 
-    # Strip page headers
-    cleaned = re.sub(r"--- Page \d+ ---\n", "", content_text)
+    # Clean text first
+    cleaned = clean_document_text(content_text)
+    cleaned = re.sub(r"--- Page \d+ ---\n", "", cleaned)
     paragraphs = [p.strip() for p in cleaned.split("\n\n") if len(p.strip()) > 30]
 
     statements = []
     for para in paragraphs:
         sentences = re.split(r"(?<=[.!?])\s+", para)
         for sent in sentences:
-            s = sent.strip()
-            # Look for definition or informative sentences
-            if 35 <= len(s) <= 220 and not s.startswith("http"):
+            s = " ".join(sent.strip().split())
+            if is_valid_statement(s):
                 statements.append({"text": s, "source": para[:100]})
 
     return statements
@@ -51,7 +107,8 @@ def generate_local_quiz_questions(
     difficulty: str,
 ) -> List[Dict[str, any]]:
     """
-    Intelligently generates 4-option MCQs from document statements when offline.
+    Intelligently generates 4-option MCQs from document statements when offline,
+    ensuring options and question stems are clean and meaningful.
     """
     if not statements:
         # Fallback if document text is sparse
@@ -78,25 +135,30 @@ def generate_local_quiz_questions(
         "It relies entirely on manual weekly batch synchronization without caching.",
         "It decreases operational performance by over 80% under standard load.",
         "It is restricted exclusively to legacy offline single-user environments.",
+        "It serves solely as an unencrypted fallback channel with no security controls.",
+        "It bypasses authentication and provides unrestricted root access.",
     ]
 
     for idx, item in enumerate(selected_statements, start=1):
         target_text = item["text"]
-        words = target_text.split()
 
-        # Build question stem based on difficulty
+        # Build varied question stems based on difficulty and content
         if difficulty == "easy":
             question_text = f"According to '{document_name}', which of the following statements is directly supported?"
         elif difficulty == "hard":
-            question_text = f"In the context of the material presented in '{document_name}', which critical assertion is highlighted?"
+            question_text = f"In the context of '{document_name}', which critical assertion is highlighted?"
         else:
-            question_text = f"Based on the provided document, what key insight is conveyed regarding the subject?"
+            if any(term in target_text.lower() for term in ["is defined as", "refers to", "means", "is a"]):
+                question_text = f"According to '{document_name}', which concept or principle is accurately described?"
+            elif any(term in target_text.lower() for term in ["provides", "ensures", "protects", "enables"]):
+                question_text = f"Based on '{document_name}', what key role or function is explicitly affirmed?"
+            else:
+                question_text = f"Based on '{document_name}', which of the following assertions is correct?"
 
         correct_option = target_text
 
-        # Create 3 plausible distractors
-        other_statements = [s["text"] for s in statements if s["text"] != target_text]
-        distractors = []
+        # Create 3 plausible distractors from other document statements if available
+        other_statements = [s["text"] for s in statements if s["text"] != target_text and len(s["text"]) > 20]
         if len(other_statements) >= 3:
             distractors = random.sample(other_statements, 3)
         else:
@@ -110,8 +172,8 @@ def generate_local_quiz_questions(
         correct_letter = option_letters[correct_idx]
 
         explanation = (
-            f"According to the document: \"{target_text}\"\n"
-            f"Therefore, option ({correct_letter}) is correct."
+            f"According to '{document_name}':\n\"{target_text}\"\n\n"
+            f"Therefore, option ({correct_letter}) is the correct choice."
         )
 
         questions.append({
@@ -257,28 +319,50 @@ async def generate_quiz(
     difficulty: str,
 ) -> QuizResponse:
     """Creates a new quiz in the database and returns frontend-safe questions."""
-    content = document.content_text or ""
+    content = clean_document_text(document.content_text or "")
     questions_data = None
 
-    # Check for Groq API key first
-    groq_key = settings.GROQ_API_KEY
-    if groq_key and len(content) > 100:
-        try:
-            questions_data = await generate_groq_quiz_questions(
-                content=content,
-                document_name=document.filename,
-                count=question_count,
-                difficulty=difficulty,
-                api_key=groq_key,
-                model=settings.GROQ_MODEL,
-            )
-        except Exception:
-            questions_data = None
+    # Priority 1: Check if the document contains structured questions (Question Bank / Exam)
+    qb_questions = extract_qb_questions(content)
+    if qb_questions and len(qb_questions) >= question_count:
+        # Partition by difficulty if possible
+        if difficulty == "easy":
+            pool = qb_questions[: max(question_count, len(qb_questions) // 3)]
+        elif difficulty == "hard":
+            pool = qb_questions[max(0, len(qb_questions) * 2 // 3) :]
+        else:
+            pool = qb_questions
 
-    # Check for Gemini API key
+        if len(pool) < question_count:
+            pool = qb_questions
+
+        selected = random.sample(pool, min(question_count, len(pool)))
+        questions_data = []
+        for i, q in enumerate(selected, start=1):
+            q_copy = dict(q)
+            q_copy["order"] = i
+            questions_data.append(q_copy)
+
+    # Priority 2: Check for valid Groq API key
+    if not questions_data:
+        groq_key = settings.GROQ_API_KEY
+        if groq_key and "your_groq_api_key" not in groq_key and len(content) > 100:
+            try:
+                questions_data = await generate_groq_quiz_questions(
+                    content=content,
+                    document_name=document.filename,
+                    count=question_count,
+                    difficulty=difficulty,
+                    api_key=groq_key,
+                    model=settings.GROQ_MODEL,
+                )
+            except Exception:
+                questions_data = None
+
+    # Priority 3: Check for Gemini API key
     if not questions_data:
         api_key = settings.GEMINI_API_KEY or settings.AI_API_KEY
-        if api_key and len(content) > 100:
+        if api_key and "your_" not in api_key and len(content) > 100:
             try:
                 questions_data = await generate_ai_quiz_questions(
                     content=content,
@@ -291,7 +375,7 @@ async def generate_quiz(
             except Exception:
                 questions_data = None
 
-    # Fallback to local intelligent quiz generator
+    # Priority 4: Fallback to local intelligent quiz generator
     if not questions_data:
         statements = extract_key_statements(content)
         questions_data = generate_local_quiz_questions(
@@ -533,4 +617,45 @@ async def get_quiz_by_id(db: AsyncSession, quiz_id: str, user_id: str) -> QuizRe
         correct_count=correct_count,
         incorrect_count=total - correct_count,
         questions=review_items,
+    )
+
+
+def generate_flashcards(document: Document, count: int = 10) -> FlashcardsResponse:
+    """Generates study flashcards with front (question/concept) and back (answer + explanation)."""
+    content = clean_document_text(document.content_text or "")
+    qb_questions = extract_qb_questions(content)
+
+    cards = []
+    if qb_questions:
+        sample = random.sample(qb_questions, min(count, len(qb_questions)))
+        for i, q in enumerate(sample, 1):
+            ans_letter = q["correct_answer"]
+            correct_text = q.get(f"option_{ans_letter.lower()}", "")
+            back = f"**Option ({ans_letter}): {correct_text}**\n\n{q['explanation']}"
+            cards.append(
+                FlashcardItem(
+                    id=str(i),
+                    front=q["question"],
+                    back=back,
+                    hint=f"Correct choice is Option {ans_letter}",
+                )
+            )
+    else:
+        statements = extract_key_statements(content)
+        sample = random.sample(statements, min(count, len(statements))) if statements else []
+        for i, s in enumerate(sample, 1):
+            text = s["text"]
+            cards.append(
+                FlashcardItem(
+                    id=str(i),
+                    front=f"Key Concept ({document.filename})",
+                    back=text,
+                    hint="Key finding from document",
+                )
+            )
+
+    return FlashcardsResponse(
+        document_id=document.id,
+        document_name=document.filename,
+        flashcards=cards,
     )

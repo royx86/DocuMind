@@ -1,7 +1,7 @@
 import os
 import uuid
 import aiofiles
-from typing import List, Optional
+from typing import List
 from fastapi import UploadFile, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,21 +15,24 @@ async def save_and_process_document(
     user_id: str,
     file: UploadFile,
 ) -> Document:
-    # Validate extension
+    """Save an uploaded file to disk and extract its text content."""
     filename = file.filename or "document.pdf"
     ext = os.path.splitext(filename)[1].lower()
     allowed_extensions = [".pdf", ".txt", ".md", ".csv", ".json", ".doc", ".docx"]
     if ext not in allowed_extensions:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unsupported file format '{ext}'. Supported formats: {', '.join(allowed_extensions)}",
+            detail=(
+                f"Unsupported file format '{ext}'. "
+                f"Supported formats: {', '.join(allowed_extensions)}"
+            ),
         )
 
-    # Generate safe unique filename
+    # Generate a collision-free filename
     unique_name = f"{uuid.uuid4().hex}_{filename}"
     saved_path = os.path.join(settings.UPLOAD_DIR, unique_name)
 
-    # Read and save file content
+    # Read content into memory for size validation
     content = await file.read()
     file_size_bytes = len(content)
 
@@ -37,18 +40,19 @@ async def save_and_process_document(
     if file_size_bytes > max_bytes:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File exceeds maximum allowed size of {settings.MAX_FILE_SIZE_MB} MB.",
+            detail=f"File exceeds the maximum allowed size of {settings.MAX_FILE_SIZE_MB} MB.",
         )
 
-    with open(saved_path, "wb") as f:
-        f.write(content)
+    # Write to disk asynchronously (non-blocking)
+    async with aiofiles.open(saved_path, "wb") as f:
+        await f.write(content)
 
     # Extract text and page count
     try:
         extracted_text, page_count, _ = extract_document_content(saved_path)
         doc_status = "ready"
-    except Exception as e:
-        extracted_text = f"Extraction error: {str(e)}"
+    except Exception as exc:
+        extracted_text = f"Extraction error: {exc}"
         page_count = 1
         doc_status = "failed"
 
@@ -75,7 +79,7 @@ async def get_user_documents(db: AsyncSession, user_id: str) -> List[Document]:
         .where(Document.user_id == user_id)
         .order_by(Document.created_at.desc())
     )
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 
 async def get_document_by_id(
@@ -101,12 +105,12 @@ async def delete_document(
     user_id: str,
 ) -> bool:
     doc = await get_document_by_id(db, doc_id, user_id)
-    # Remove file from disk if it exists
+    # Remove the file from disk if it still exists
     if os.path.exists(doc.file_path):
         try:
             os.remove(doc.file_path)
         except OSError:
-            pass
+            pass  # File already gone — not a hard failure
 
     await db.delete(doc)
     await db.flush()

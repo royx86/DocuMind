@@ -7,10 +7,11 @@ import {
   Settings,
   LayoutDashboard,
   GraduationCap,
+  Brain,
   X,
   LogOut,
-  Sparkles,
 } from "lucide-react";
+import { DocuMindLogo } from "@/components/ui/DocuMindLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ export const MobileNav = ({ open, onClose }) => {
     { label: "New Chat", path: "/chat", icon: MessageSquarePlus },
     { label: "Documents", path: "/documents", icon: FileText },
     { label: "Practice Quiz", path: "/quiz", icon: GraduationCap },
+    { label: "Flashcards", path: "/flashcards", icon: Brain },
     { label: "History", path: "/history", icon: History },
     { label: "Settings", path: "/settings", icon: Settings },
   ];
@@ -34,19 +36,14 @@ export const MobileNav = ({ open, onClose }) => {
     <div className="fixed inset-0 z-50 md:hidden flex">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/30 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-slate-950/20 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div className="relative w-72 max-w-[85%] bg-sidebar text-foreground h-full shadow-2xl flex flex-col p-5 animate-in slide-in-from-left duration-200">
         <div className="flex justify-between items-center pb-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <div className="size-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-xs">
-              <Sparkles className="size-4" />
-            </div>
-            <span className="font-bold text-lg tracking-tight">DocuMind</span>
-          </div>
+          <DocuMindLogo size="sm" withText={true} />
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
