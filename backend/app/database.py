@@ -123,12 +123,44 @@ async def init_db(max_retries: int = 10, delay: float = 2.0) -> None:
 
 
 async def migrate_schema(conn: AsyncConnection) -> None:
-    """Add model columns missing from tables created by older builds."""
+    """
+    Bring existing tables in line with the current SQLAlchemy models.
+
+    Strategy:
+    1. Rename legacy column aliases (e.g. hashed_password → password_hash)
+       so that data is preserved and NOT-NULL constraints are not violated.
+    2. Add any brand-new columns that don't exist yet.
+    """
     table_names = await conn.run_sync(
         lambda sync_conn: set(inspect(sync_conn).get_table_names())
     )
     quote = conn.dialect.identifier_preparer.quote
 
+    # ── Column renames: (table, old_name, new_name) ──────────────────────────
+    COLUMN_RENAMES = [
+        ("users", "hashed_password", "password_hash"),
+    ]
+
+    for table_name, old_col, new_col in COLUMN_RENAMES:
+        if table_name not in table_names:
+            continue
+        existing_cols = await conn.run_sync(
+            lambda sync_conn, tn=table_name: {
+                c["name"] for c in inspect(sync_conn).get_columns(tn)
+            }
+        )
+        if old_col in existing_cols and new_col not in existing_cols:
+            logger.warning(
+                "Renaming legacy column %s.%s → %s.", table_name, old_col, new_col
+            )
+            await conn.execute(
+                text(
+                    f"ALTER TABLE {quote(table_name)} "
+                    f"RENAME COLUMN {quote(old_col)} TO {quote(new_col)}"
+                )
+            )
+
+    # ── Add missing columns ───────────────────────────────────────────────────
     for table in Base.metadata.sorted_tables:
         if table.name not in table_names:
             continue
