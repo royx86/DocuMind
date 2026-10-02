@@ -338,47 +338,40 @@ export const Flashcards = () => {
         {/* Flip card */}
         <div
           onClick={() => setFlipped((f) => !f)}
-          className="relative cursor-pointer"
-          style={{ perspective: "1200px" }}
+          className="cursor-pointer"
         >
           <div
-            className="relative min-h-[320px] w-full rounded-2xl transition-all duration-500"
-            style={{
-              transformStyle: "preserve-3d",
-              transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-            }}
+            className={`flex min-h-[320px] w-full flex-col items-center justify-center rounded-2xl border p-8 text-center shadow-lg transition-colors duration-300 ${
+              flipped
+                ? "border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10"
+                : "border-border bg-card"
+            }`}
           >
-            {/* Front */}
-            <div
-              className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-8 text-center shadow-lg"
-              style={{ backfaceVisibility: "hidden" }}
-            >
-              <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <BookOpen className="size-5" />
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                Question
-              </p>
-              <p className="text-base font-semibold leading-relaxed text-foreground sm:text-lg">
-                {currentCard?.front}
-              </p>
-              <p className="mt-6 text-xs text-muted-foreground">
-                Tap to reveal answer
-              </p>
-            </div>
-
-            {/* Back */}
-            <div
-              className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-8 text-center shadow-lg"
-              style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-            >
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-4">
-                Answer
-              </p>
-              <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap sm:text-base">
-                {currentCard?.back}
-              </p>
-            </div>
+            {flipped ? (
+              <>
+                <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-primary">
+                  Answer
+                </p>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
+                  {currentCard?.back}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <BookOpen className="size-5" />
+                </div>
+                <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Question
+                </p>
+                <p className="text-base font-semibold leading-relaxed text-foreground sm:text-lg">
+                  {currentCard?.front}
+                </p>
+                <p className="mt-6 text-xs text-muted-foreground">
+                  Tap to reveal answer
+                </p>
+              </>
+            )}
           </div>
         </div>
 
