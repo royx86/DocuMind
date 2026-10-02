@@ -113,6 +113,9 @@ Edit `.env` and fill in:
 
 For Docker Compose, keep the database hostname in `DATABASE_URL` as `postgres`.
 For a backend running directly on the host, use `localhost` (or the hostname of your managed database).
+Set `CORS_ORIGINS` to the exact deployed frontend origin, such as
+`["https://app.example.com"]`. Comma-separated values are also accepted; do not include
+an API path or trailing slash.
 
 ### 2. Start all services
 
