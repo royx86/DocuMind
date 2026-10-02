@@ -6,10 +6,10 @@ from app.database import Base
 
 
 class Document(Base):
-    __tablename__ = "documents"
+    __tablename__ = "documind_documents"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(String(36), ForeignKey("documind_users.id", ondelete="CASCADE"), nullable=False, index=True)
     filename = Column(String(255), nullable=False)
     file_path = Column(String(512), nullable=False)
     file_size = Column(String(64), nullable=True, default="0 MB")

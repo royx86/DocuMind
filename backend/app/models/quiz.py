@@ -6,11 +6,11 @@ from app.database import Base
 
 
 class Quiz(Base):
-    __tablename__ = "quizzes"
+    __tablename__ = "documind_quizzes"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    document_id = Column(String(36), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(String(36), ForeignKey("documind_users.id", ondelete="CASCADE"), nullable=False, index=True)
+    document_id = Column(String(36), ForeignKey("documind_documents.id", ondelete="CASCADE"), nullable=False, index=True)
     difficulty = Column(String(32), nullable=False, default="medium")  # easy, medium, hard
     question_count = Column(Integer, nullable=False, default=5)
     score = Column(Integer, nullable=False, default=0)
@@ -28,10 +28,10 @@ class Quiz(Base):
 
 
 class QuizQuestion(Base):
-    __tablename__ = "quiz_questions"
+    __tablename__ = "documind_quiz_questions"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    quiz_id = Column(String(36), ForeignKey("quizzes.id", ondelete="CASCADE"), nullable=False, index=True)
+    quiz_id = Column(String(36), ForeignKey("documind_quizzes.id", ondelete="CASCADE"), nullable=False, index=True)
     order = Column(Integer, nullable=False, default=0)
     question = Column(Text, nullable=False)
     option_a = Column(Text, nullable=False)

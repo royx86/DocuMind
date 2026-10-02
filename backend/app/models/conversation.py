@@ -6,11 +6,11 @@ from app.database import Base
 
 
 class Conversation(Base):
-    __tablename__ = "conversations"
+    __tablename__ = "documind_conversations"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    document_id = Column(String(36), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(String(36), ForeignKey("documind_users.id", ondelete="CASCADE"), nullable=False, index=True)
+    document_id = Column(String(36), ForeignKey("documind_documents.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(255), nullable=False, default="New Conversation")
     created_at = Column(
         DateTime,

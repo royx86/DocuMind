@@ -6,12 +6,12 @@ from app.database import Base
 
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "documind_users"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
+    password_hash = Column("hashed_password", String(255), nullable=False)
     created_at = Column(
         DateTime,
         default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),

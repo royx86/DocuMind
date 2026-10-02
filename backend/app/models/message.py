@@ -6,10 +6,10 @@ from app.database import Base
 
 
 class Message(Base):
-    __tablename__ = "messages"
+    __tablename__ = "documind_messages"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    conversation_id = Column(String(36), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True)
+    conversation_id = Column(String(36), ForeignKey("documind_conversations.id", ondelete="CASCADE"), nullable=False, index=True)
     role = Column(String(32), nullable=False)  # user, assistant, system
     content = Column(Text, nullable=False)
     sources = Column(Text, nullable=True)  # JSON string of references with page, snippet, etc.
