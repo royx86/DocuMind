@@ -118,7 +118,7 @@ export const Landing = () => {
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
           <Link to="/" className="flex items-center gap-2">
-            <DocuMindLogo size="sm" withText={true} subtitle="Workspace" />
+            <DocuMindLogo size="sm" withText={true} subtitle="Workspace" forceLight={true} />
           </Link>
 
           <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
@@ -402,7 +402,7 @@ export const Landing = () => {
       {/* ── Footer ────────────────────────────────────────────────────── */}
       <footer className="border-t border-slate-200 bg-white px-5 py-8 sm:px-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <DocuMindLogo size="xs" withText={true} subtitle="Platform" />
+          <DocuMindLogo size="xs" withText={true} subtitle="Platform" forceLight={true} />
           <p className="text-xs text-slate-500 font-medium">
             © {new Date().getFullYear()} DocuMind. High-integrity document research.
           </p>
