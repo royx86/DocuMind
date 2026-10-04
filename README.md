@@ -3,6 +3,7 @@
 > **Upload any document. Ask questions. Get cited answers. Generate practice quizzes and flashcards.**
 
 DocuMind is a full-stack RAG (Retrieval-Augmented Generation) application built with **FastAPI + PostgreSQL** on the backend and **React + Vite + TailwindCSS** on the frontend. It allows users to upload PDF/TXT documents, chat with them, generate multiple-choice quizzes, and study with AI-generated flashcards.
+## Live: https://prolific-joy-production-a605.up.railway.app
 
 ---
 
